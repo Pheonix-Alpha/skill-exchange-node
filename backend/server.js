@@ -23,7 +23,7 @@ mongoose.connect(process.env.MONGO_URI)
 
 
   app.use(cors({
-    origin: ["http://localhost:3000", "https://skill-exchange-node-202s38u3c-pheonix-alphas-projects.vercel.app"],// your frontend URL
+    origin: ["http://localhost:3000", "https://skill-exchange-node-eujj0pcue-pheonix-alphas-projects.vercel.app"],// your frontend URL
   credentials: true,               // if you need cookies
 }));
 
