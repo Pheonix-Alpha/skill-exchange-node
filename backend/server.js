@@ -6,6 +6,7 @@ import skillRoutes from "./routes/skills.js";
 import exchangeRoutes from "./routes/exchange.js";
 import matchRoutes from "./routes/match.js"
 import profileRoutes from "./routes/profile.js";
+import sessionRoutes from "./routes/sessions.js";
 import cors from "cors";
 
 
@@ -33,6 +34,7 @@ app.use("/api", skillRoutes);
 app.use("/api/exchange", exchangeRoutes);
 app.use("/api", matchRoutes);
 app.use("/api", profileRoutes);
+app.use("/api/session", sessionRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
