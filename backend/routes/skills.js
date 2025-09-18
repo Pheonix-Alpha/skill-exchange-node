@@ -5,23 +5,29 @@ import { authMiddleware } from "../middleware/auth.js";
 const router = express.Router();
 
 // Search users by skill
-router.get("/search/:skill", async (req, res) => {
+// Search users by skill
+router.get("/search/:skill", authMiddleware, async (req, res) => {
   try {
     const { skill } = req.params;
     const { type } = req.query; // "offering" or "wanting"
-    let filter = {};
+    const userId = req.user; // current logged-in user id
+
+    if (!skill || skill.trim() === "") {
+      return res.status(400).json({ message: "Skill is required" });
+    }
+
+    let filter = { _id: { $ne: userId } }; // exclude current user
+    const regex = new RegExp(`^${skill}$`, "i"); // stricter case-insensitive match
 
     if (type === "offering") {
-      filter = { skillsOffered: { $in: [skill] } };
+      filter.skillsOffered = { $in: [regex] };
     } else if (type === "wanting") {
-      filter = { skillsWanted: { $in: [skill] } };
+      filter.skillsWanted = { $in: [regex] };
     } else {
-      filter = {
-        $or: [
-          { skillsOffered: { $in: [skill] } },
-          { skillsWanted: { $in: [skill] } },
-        ],
-      };
+      filter.$or = [
+        { skillsOffered: { $in: [regex] } },
+        { skillsWanted: { $in: [regex] } },
+      ];
     }
 
     const users = await User.find(filter).select("-password");
@@ -42,19 +48,5 @@ router.get("/search/:skill", async (req, res) => {
 
 
 
-// Update skills (only for logged-in user)
-router.put("/update", authMiddleware, async (req, res) => {
-  const { skillsOffered, skillsWanted } = req.body;
-  try {
-    const updatedUser = await User.findByIdAndUpdate(
-      req.user,
-      { skillsOffered, skillsWanted },
-      { new: true }
-    );
-    res.json(updatedUser);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 
 export default router;

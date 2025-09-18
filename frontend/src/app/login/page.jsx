@@ -3,10 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import api from "@/lib/axios";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [message, setMessage] = useState("");
+    const router = useRouter();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -25,8 +27,9 @@ export default function LoginPage() {
 
       setMessage("✅ Login successful!");
 
-      // redirect after login
-      window.location.href = "/";
+     setTimeout(() => {
+        router.push("/dashboard");
+      }, 1000);
     } catch (err) {
       setMessage(err.response?.data?.message || "❌ Login failed");
     }

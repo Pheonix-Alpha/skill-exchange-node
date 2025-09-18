@@ -13,12 +13,20 @@ router.get("/matches", authMiddleware, async (req, res) => {
 
     if (!currentUser) return res.status(404).json({ message: "User not found" });
 
-    // Find users who match
+    // Convert skills to regex for case-insensitive matching
+    const wantedRegex = currentUser.skillsWanted.map(
+      (s) => new RegExp(`^${s}$`, "i")
+    );
+    const offeredRegex = currentUser.skillsOffered.map(
+      (s) => new RegExp(`^${s}$`, "i")
+    );
+
+    // Find users who match (ignores case + excludes self)
     const matches = await User.find({
-      _id: { $ne: currentUser._id }, // exclude self
+      _id: { $ne: currentUser._id },
       $or: [
-        { skillsOffered: { $in: currentUser.skillsWanted } }, // they offer what I want
-        { skillsWanted: { $in: currentUser.skillsOffered } }, // they want what I offer
+        { skillsOffered: { $in: wantedRegex } }, // they offer what I want
+        { skillsWanted: { $in: offeredRegex } }, // they want what I offer
       ],
     }).select("name email skillsOffered skillsWanted");
 
@@ -36,5 +44,6 @@ router.get("/matches", authMiddleware, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 export default router;

@@ -2,6 +2,7 @@ import express from "express";
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { authMiddleware } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -35,6 +36,17 @@ router.post("/login", async (req, res) => {
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
 
   res.json({ token, user });
+});
+
+router.get("/me", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user).select("name email skillsOffered skillsWanted");
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 export default router;
