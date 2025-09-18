@@ -6,16 +6,41 @@ const router = express.Router();
 
 // Search users by skill
 router.get("/search/:skill", async (req, res) => {
-  const skill = req.params.skill;
-  const users = await User.find({
-    $or: [
-      { skillsOffered: { $in: [skill] } },
-      { skillsWanted: { $in: [skill] } }
-    ]
-  });
+  try {
+    const { skill } = req.params;
+    const { type } = req.query; // "offering" or "wanting"
+    let filter = {};
 
-  res.json(users);
+    if (type === "offering") {
+      filter = { skillsOffered: { $in: [skill] } };
+    } else if (type === "wanting") {
+      filter = { skillsWanted: { $in: [skill] } };
+    } else {
+      filter = {
+        $or: [
+          { skillsOffered: { $in: [skill] } },
+          { skillsWanted: { $in: [skill] } },
+        ],
+      };
+    }
+
+    const users = await User.find(filter).select("-password");
+
+    const formatted = users.map((u) => ({
+      id: u._id,
+      username: u.name,
+      email: u.email,
+      offeringSkills: u.skillsOffered,
+      wantingSkills: u.skillsWanted,
+    }));
+
+    res.json(formatted);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
+
+
 
 // Update skills (only for logged-in user)
 router.put("/update", authMiddleware, async (req, res) => {
