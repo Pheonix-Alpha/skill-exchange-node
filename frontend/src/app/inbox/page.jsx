@@ -23,11 +23,14 @@ export default function InboxPage() {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        const pendingRequests = res.data.filter(
-          r => r.recipient?._id?.toString() === currentUserId.toString()
-        );
+        // Keep all requests where current user is the recipient
+         const userRequests = res.data.filter(
+        r =>
+          r.recipient?._id?.toString() === currentUserId.toString() ||
+          r.requester?._id?.toString() === currentUserId.toString()
+      );
 
-        setRequests(pendingRequests);
+         setRequests(userRequests);
       } catch (err) {
         console.error("Failed to fetch requests:", err);
       } finally {
@@ -47,7 +50,7 @@ export default function InboxPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // Update the request's status locally
+      // Update the request's status locally without removing it
       setRequests(prev =>
         prev.map(r => (r._id === id ? { ...r, status } : r))
       );
@@ -69,49 +72,59 @@ export default function InboxPage() {
           <p className="text-gray-500">No requests.</p>
         ) : (
           <ul className="space-y-4">
-            {requests.map(req => (
-              <li
-                key={req._id}
-                className="bg-white shadow rounded-lg p-4 flex justify-between items-center"
-              >
-                <div>
-                  <p className="font-medium">{req.requester.name}</p>
-                  <p className="text-sm text-gray-500">
-                    Wants: {req.skillWanted} | Offered: {req.skillOffered}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  {req.status === "pending" ? (
-                    <>
-                      <button
-                        onClick={() => handleUpdateStatus(req._id, "accepted")}
-                        disabled={updatingId === req._id}
-                        className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-                      >
-                        Accept
-                      </button>
-                      <button
-                        onClick={() => handleUpdateStatus(req._id, "rejected")}
-                        disabled={updatingId === req._id}
-                        className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-                      >
-                        Reject
-                      </button>
-                    </>
-                  ) : (
-                    <span
-                      className={`px-3 py-1 rounded font-semibold ${
-                        req.status === "accepted"
-                          ? "bg-green-600 text-white"
-                          : "bg-red-600 text-white"
-                      }`}
-                    >
-                      {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
-                    </span>
-                  )}
-                </div>
-              </li>
-            ))}
+            {requests.map(req => {
+  const currentUserId = JSON.parse(localStorage.getItem("user")).id || JSON.parse(localStorage.getItem("user"))._id;
+  
+  // Determine who is the "other" user
+  const otherUser = req.requester._id.toString() === currentUserId.toString()
+    ? req.recipient
+    : req.requester;
+
+  return (
+    <li
+      key={req._id}
+      className="bg-white shadow rounded-lg p-4 flex justify-between items-center"
+    >
+      <div>
+        <p className="font-medium">{otherUser.name}</p>
+        <p className="text-sm text-gray-500">
+          Wants: {req.skillWanted} | Offered: {req.skillOffered}
+        </p>
+      </div>
+      <div className="flex gap-2">
+        {req.status === "pending" && req.recipient._id.toString() === currentUserId.toString() ? (
+          <>
+            <button
+              onClick={() => handleUpdateStatus(req._id, "accepted")}
+              disabled={updatingId === req._id}
+              className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+            >
+              Accept
+            </button>
+            <button
+              onClick={() => handleUpdateStatus(req._id, "rejected")}
+              disabled={updatingId === req._id}
+              className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+            >
+              Reject
+            </button>
+          </>
+        ) : (
+          <span
+            className={`px-3 py-1 rounded font-semibold ${
+              req.status === "accepted"
+                ? "bg-green-600 text-white"
+                : "bg-red-600 text-white"
+            }`}
+          >
+            {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
+          </span>
+        )}
+      </div>
+    </li>
+  );
+})}
+
           </ul>
         )}
       </div>

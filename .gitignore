@@ -8,6 +8,8 @@ yarn-error.log
 backend/.env
 frontend/.env
 
+backend/seed.js
+
 # Logs
 logs
 *.log

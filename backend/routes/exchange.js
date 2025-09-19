@@ -1,25 +1,53 @@
 import express from "express";
 import Exchange from "../models/Exchange.js";
 import { authMiddleware } from "../middleware/auth.js";
+import User from "../models/User.js"
 
 const router = express.Router();
 
-// Send exchange request
+
 router.post("/send", authMiddleware, async (req, res) => {
   try {
-    const { recipientId, skillOffered, skillWanted } = req.body;
+    const { recipientId, skillOffered, skillWanted, strict } = req.body;
+
+    console.log("Send request body:", req.body);
+    console.log("Logged in user id:", req.user);
+
+    if (!recipientId || !skillOffered || !skillWanted) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
 
     if (recipientId === req.user) {
       return res.status(400).json({ message: "You cannot send a request to yourself" });
     }
 
-    // optional: prevent duplicate pending requests
+    // Validate ObjectIds
+    if (!recipientId.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: "Invalid recipientId format" });
+    }
+
+    const requester = await User.findById(req.user).select("skillsOffered");
+    const recipient = await User.findById(recipientId).select("skillsOffered");
+
+    if (!requester || !recipient) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!requester.skillsOffered.includes(skillOffered.trim())) {
+      return res.status(400).json({ message: "Invalid skill offered" });
+    }
+
+    if (strict && !recipient.skillsOffered.includes(skillWanted.trim())) {
+      return res.status(400).json({ message: "Invalid skill wanted" });
+    }
+
+    // Prevent duplicate pending request
     const existing = await Exchange.findOne({
       requester: req.user,
       recipient: recipientId,
-      skillOffered,
-      skillWanted,
-      status: "pending"
+      skillOffered: skillOffered.trim(),
+      skillWanted: skillWanted.trim(),
+      status: "pending",
     });
 
     if (existing) {
@@ -30,15 +58,22 @@ router.post("/send", authMiddleware, async (req, res) => {
       requester: req.user,
       recipient: recipientId,
       skillOffered: skillOffered.trim(),
-      skillWanted: skillWanted.trim()
+      skillWanted: skillWanted.trim(),
     });
 
     await exchange.save();
+    console.log("Exchange created:", exchange);
+
     res.json({ message: "Request sent successfully", exchange });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Exchange send error:", err);
+    res.status(500).json({ error: err.message, stack: err.stack });
   }
 });
+
+
+
+
 
 // Get all requests for logged-in user
 router.get("/my-requests", authMiddleware, async (req, res) => {

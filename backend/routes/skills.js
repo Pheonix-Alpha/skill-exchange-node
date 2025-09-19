@@ -4,7 +4,7 @@ import { authMiddleware } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// Search users by skill
+
 // Search users by skill
 router.get("/search/:skill", authMiddleware, async (req, res) => {
   try {

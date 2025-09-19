@@ -1,49 +1,70 @@
 "use client";
 
 import { useState } from "react";
-import axios from "axios";
+ import api from "@/lib/axios"; 
 
-export default function UserCard({ user, disabledRequests = new Set(), onRequestSent }) {
+export default function UserCard({ user, disabledRequests = new Set(), onRequestSent, isFromMatch = false }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [skillOffered, setSkillOffered] = useState("");
   const [skillWanted, setSkillWanted] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  const requestKey = user.id;
+  const requestKey = user.id || user._id;
   const isDisabled = disabledRequests.has(requestKey);
+  const currentUser = JSON.parse(localStorage.getItem("user"));
 
-  const handleSendRequest = async () => {
-    if (!skillOffered || !skillWanted) {
-      setMessage("Please select both skills");
-      return;
-    }
+ // import your Axios instance
 
-    try {
-      setLoading(true);
-      setMessage("");
+const handleSendRequest = async () => {
+  if (!skillOffered || !skillWanted) {
+    setMessage("⚠️ Please select both skills");
+    return;
+  }
 
-      const token = localStorage.getItem("token");
+  try {
+    setLoading(true);
+    setMessage("");
 
-      await axios.post(
-        "http://localhost:5000/api/exchange/send",
-        {
-          recipientId: user.id,
-          skillOffered,
-          skillWanted,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+    const token = localStorage.getItem("token");
+    console.log("Sending request with:", {
+      recipientId: requestKey,
+      skillOffered,
+      skillWanted,
+      strict: isFromMatch,
+      token,
+    });
 
-      setMessage("Request sent ✅");
-      onRequestSent?.(user.id); // notify parent to update disabledRequests
-      setModalOpen(false);
-    } catch (err) {
-      setMessage(err.response?.data?.message || "Failed to send request");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const res = await api.post("/exchange/send", {
+      recipientId: requestKey,
+      skillOffered,
+      skillWanted,
+      strict: isFromMatch, // strict only for matches
+    });
+
+    console.log("Response from backend:", res.data);
+
+    setMessage("✅ Request sent");
+    onRequestSent?.(requestKey);
+    setModalOpen(false);
+  } catch (err) {
+  if (err.response) {
+    console.error("Server responded with error:", err.response.data);
+    setMessage(err.response.data?.message || "❌ Failed to send request");
+  } else if (err.request) {
+    console.error("Request made but no response:", err.request);
+    setMessage("❌ No response from server");
+  } else {
+    console.error("Error setting up request:", err.message);
+    setMessage("❌ Error sending request");
+  }
+}
+ finally {
+    setLoading(false);
+  }
+};
+
+
 
   return (
     <div className="bg-white shadow-md rounded-lg p-4 mb-4 relative">
@@ -57,7 +78,6 @@ export default function UserCard({ user, disabledRequests = new Set(), onRequest
         <strong>Wanting:</strong> {user.wantingSkills.join(", ")}
       </div>
 
-      {/* Send Request Button */}
       <button
         onClick={() => setModalOpen(true)}
         className={`absolute top-4 right-4 px-3 py-1 rounded ${
@@ -70,7 +90,6 @@ export default function UserCard({ user, disabledRequests = new Set(), onRequest
         {isDisabled ? "Requested" : "Send"}
       </button>
 
-      {/* Modal */}
       {modalOpen && !isDisabled && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg w-80 relative">
@@ -83,7 +102,7 @@ export default function UserCard({ user, disabledRequests = new Set(), onRequest
               required
             >
               <option value="">Select skill to offer</option>
-              {JSON.parse(localStorage.getItem("user"))?.skillsOffered?.map((s, i) => (
+              {currentUser?.skillsOffered?.map((s, i) => (
                 <option key={i} value={s}>{s}</option>
               ))}
             </select>
@@ -95,7 +114,7 @@ export default function UserCard({ user, disabledRequests = new Set(), onRequest
               required
             >
               <option value="">Select skill to request</option>
-              {user.wantingSkills.map((s, i) => (
+              {user.offeringSkills.map((s, i) => (
                 <option key={i} value={s}>{s}</option>
               ))}
             </select>

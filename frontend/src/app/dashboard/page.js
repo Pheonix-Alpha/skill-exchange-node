@@ -17,7 +17,6 @@ export default function DashboardPage() {
 
   const router = useRouter();
 
-  // Protect route + fetch matches
   useEffect(() => {
     if (!isLoggedIn()) {
       router.push("/login");
@@ -26,7 +25,10 @@ export default function DashboardPage() {
 
     const fetchMatches = async () => {
       try {
-        const res = await axios.get("/matches"); // backend must expose /matches
+        const token = localStorage.getItem("token");
+        const res = await axios.get("/matches", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setMatches(res.data || []);
       } catch (err) {
         console.error("Error fetching matches:", err);
@@ -36,9 +38,11 @@ export default function DashboardPage() {
     fetchMatches();
   }, [router]);
 
-  // Search handler
   const handleSearch = async () => {
-    if (!skill.trim()) return;
+    if (!skill.trim()) {
+      setResults([]);
+      return;
+    }
 
     try {
       setLoading(true);
@@ -54,7 +58,6 @@ export default function DashboardPage() {
     }
   };
 
-  // Callback for UserCard after sending request
   const handleRequestSent = (userId) => {
     setDisabledRequests((prev) => new Set(prev).add(userId));
   };
@@ -101,10 +104,11 @@ export default function DashboardPage() {
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {matches.map((user) => (
                 <UserCard
-                  key={user.id || user._id}
+                  key={user._id || user.id}
                   user={user}
                   disabledRequests={disabledRequests}
                   onRequestSent={handleRequestSent}
+                  isFromMatch={true}
                 />
               ))}
             </div>
@@ -120,12 +124,11 @@ export default function DashboardPage() {
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {results.map((user) => (
                 <UserCard
-                  key={user.id || user._id}
+                  key={user._id || user.id}
                   user={user}
                   disabledRequests={disabledRequests}
-                  onRequestSent={(userId) => {
-    setDisabledRequests(prev => new Set(prev).add(userId));
-  }}
+                  onRequestSent={handleRequestSent}
+                  isFromMatch={false}
                 />
               ))}
             </div>

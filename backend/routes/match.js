@@ -21,13 +21,11 @@ router.get("/matches", authMiddleware, async (req, res) => {
       (s) => new RegExp(`^${s}$`, "i")
     );
 
-    // Find users who match (ignores case + excludes self)
+    // Must match BOTH conditions (mutual interest)
     const matches = await User.find({
-      _id: { $ne: currentUser._id },
-      $or: [
-        { skillsOffered: { $in: wantedRegex } }, // they offer what I want
-        { skillsWanted: { $in: offeredRegex } }, // they want what I offer
-      ],
+      _id: { $ne: currentUser._id }, // exclude self
+      skillsOffered: { $in: wantedRegex }, // they offer what I want
+      skillsWanted: { $in: offeredRegex }, // they want what I offer
     }).select("name email skillsOffered skillsWanted");
 
     // Format response
@@ -41,9 +39,11 @@ router.get("/matches", authMiddleware, async (req, res) => {
 
     res.json(formatted);
   } catch (err) {
+    console.error("Error fetching matches:", err);
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 export default router;
