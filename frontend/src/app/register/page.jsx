@@ -46,74 +46,80 @@ export default function RegisterPage() {
     }
   };
 
-  return (
-    <div className="h-screen flex items-center justify-center bg-gray-200">
-      <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-sm">
-        <h2 className="text-xl font-bold mb-6 text-center">Register</h2>
-        <form onSubmit={handleRegister} className="flex flex-col">
-          <label className="mb-2 font-semibold px-2">Name</label>
+return (
+  <div className="h-screen flex">
+    {/* Left: Register Form */}
+    <div className="flex-1 flex items-center justify-center bg-gray-200 p-6">
+      <div className="bg-white p-6 md:pb-10 rounded-xl shadow-md w-full max-w-sm">
+        <h2 className="text-xl font-bold m-4 text-center text-[#6358DC]">
+          Register
+        </h2>
+
+        <form onSubmit={handleRegister} className="flex flex-col space-y-3">
+          {/* Name */}
           <input
             name="name"
             type="text"
-            className="border p-2 w-full mb-2 rounded"
-            placeholder="Name"
             value={form.name}
             onChange={handleChange}
+            placeholder="Name"
             required
+            className="border p-3 rounded w-full focus:outline-none focus:ring-2 focus:ring-[#6358DC]"
           />
 
-          <label className="mb-2 font-semibold px-2">Email</label>
+          {/* Email */}
           <input
             name="email"
             type="email"
-            className="border p-2 w-full mb-2 rounded"
-            placeholder="Email"
             value={form.email}
             onChange={handleChange}
+            placeholder="Email"
             required
+            className="border p-3 rounded w-full focus:outline-none focus:ring-2 focus:ring-[#6358DC]"
           />
 
-          <label className="mb-2 font-semibold px-2">Password</label>
+          {/* Password */}
           <input
             name="password"
             type="password"
-            className="border p-2 w-full mb-2 rounded"
-            placeholder="Password"
             value={form.password}
             onChange={handleChange}
+            placeholder="Password"
             required
+            className="border p-3 rounded w-full focus:outline-none focus:ring-2 focus:ring-[#6358DC]"
           />
 
-          <label className="mb-2 font-semibold px-2">Skills Offered</label>
+          {/* Skills Offered */}
           <input
             name="skillsOffered"
             type="text"
-            className="border p-2 w-full mb-2 rounded"
-            placeholder="e.g. JavaScript, React"
             value={form.skillsOffered}
             onChange={handleChange}
+            placeholder="Skills Offered (e.g. JavaScript, React)"
+            className="border p-3 rounded w-full focus:outline-none focus:ring-2 focus:ring-[#6358DC]"
           />
 
-          <label className="mb-2 font-semibold px-2">Skills Wanted</label>
+          {/* Skills Wanted */}
           <input
             name="skillsWanted"
             type="text"
-            className="border p-2 w-full mb-2 rounded"
-            placeholder="e.g. Python, Django"
             value={form.skillsWanted}
             onChange={handleChange}
+            placeholder="Skills Wanted (e.g. Python, Django)"
+            className="border p-3 rounded w-full focus:outline-none focus:ring-2 focus:ring-[#6358DC]"
           />
 
           <button
             type="submit"
-            className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900 transition"
+            className="bg-[#6358DC] text-white px-4 py-2 rounded hover:bg-[#4e47b3] transition"
           >
             Register
           </button>
         </form>
 
+        {/* Message */}
         {message && (
-          <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded shadow-md z-50 flex items-center">
+          <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-indigo-500 text-white px-4 py-2 rounded shadow-md z-50 flex items-center">
             <span>{message}</span>
             <button
               onClick={() => setMessage("")}
@@ -124,16 +130,31 @@ export default function RegisterPage() {
           </div>
         )}
 
+        {/* Login Link */}
         <p className="mt-4 text-center text-sm">
           Already have an account?{" "}
           <Link
             href="/login"
-            className="text-blue-600 hover:underline font-semibold"
+            className="text-[#6358DC] hover:underline font-semibold"
           >
             Login
           </Link>
         </p>
       </div>
     </div>
-  );
+
+    {/* Right: Image (hidden on mobile) */}
+    <div className="hidden md:flex md:flex-1">
+      <div className="p-20">
+        <img
+          src="/login-image.jpg"
+          alt="Register illustration"
+          className="rounded-xl shadow-lg"
+        />
+      </div>
+    </div>
+  </div>
+);
+
+
 }
