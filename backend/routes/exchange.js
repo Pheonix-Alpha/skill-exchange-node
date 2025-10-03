@@ -2,6 +2,7 @@ import express from "express";
 import Exchange from "../models/Exchange.js";
 import { authMiddleware } from "../middleware/auth.js";
 import User from "../models/User.js"
+import mongoose from "mongoose";
 
 const router = express.Router();
 
@@ -129,5 +130,47 @@ router.put("/:id/complete", authMiddleware, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+
+
+
+router.get("/my-accepted-requests", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user;
+
+    const exchanges = await Exchange.find({
+      $or: [{ requester: userId }, { recipient: userId }],
+      status: "accepted",
+    }).populate("requester recipient", "name email skillsOffered skillsWanted");
+
+    // Map to friends
+    const allFriends = exchanges.map((ex) =>
+      ex.requester._id.toString() === userId ? ex.recipient : ex.requester
+    );
+
+    // Deduplicate by _id
+    const uniqueFriendsMap = {};
+    allFriends.forEach((f) => {
+      uniqueFriendsMap[f._id.toString()] = f;
+    });
+
+    const uniqueFriends = Object.values(uniqueFriendsMap);
+
+    console.log("Logged-in user:", userId);
+    console.log("Exchanges found:", exchanges.length);
+    console.log("Unique friends:", uniqueFriends.length);
+
+    res.json(uniqueFriends);
+  } catch (err) {
+    console.error("Error in /my-accepted-requests:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
+
+
+
 
 export default router;

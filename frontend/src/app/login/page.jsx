@@ -39,8 +39,8 @@ export default function LoginPage() {
  return (
     <div className="h-screen flex">
       {/* Left: Login */}
-      <div className="flex-1 flex items-center justify-center bg-gray-200 p-6">
-        <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-sm">
+      <div className="flex-1 flex items-center justify-center bg-white p-6">
+        <div className="bg-white p-6 rounded-xl shadow-2xl  w-full max-w-sm">
           <h2 className="text-xl font-bold mb-6 text-">Welcome to <br></br>
 <span className="text-purple-700">Skill Exchange</span> </h2>
           <form onSubmit={handleLogin} className="flex flex-col">
@@ -102,7 +102,7 @@ export default function LoginPage() {
         </div>
       </div>
  {/* Right: Image */}
-    <div className="hidden md:flex md:flex-1 items-center justify-center bg-gray-100">
+    <div className="hidden md:flex md:flex-1 items-center justify-center bg-white">
       <img src="/login-image.jpg" alt="Login Image" className="max-w-full h-auto p-20" />
     </div>
     </div>

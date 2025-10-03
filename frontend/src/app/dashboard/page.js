@@ -9,15 +9,38 @@ import { isLoggedIn } from "@/lib/auth";
 
 export default function DashboardPage() {
   const [skill, setSkill] = useState("");
+  const [hydrated, setHydrated] = useState(false);
   const [type, setType] = useState("offering");
   const [matches, setMatches] = useState([]);
   const [results, setResults] = useState([]);
   const [disabledRequests, setDisabledRequests] = useState(new Set());
   const [loading, setLoading] = useState(false);
+  const [fetchingMatches, setFetchingMatches] = useState(false);
 
   const router = useRouter();
 
+  // Hydration
   useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  // Load disabled requests from localStorage
+  useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem("disabledRequests") || "[]");
+    setDisabledRequests(new Set(saved));
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "disabledRequests",
+      JSON.stringify([...disabledRequests])
+    );
+  }, [disabledRequests]);
+
+  // Fetch matches after hydration & auth check
+  useEffect(() => {
+    if (!hydrated) return;
+
     if (!isLoggedIn()) {
       router.push("/login");
       return;
@@ -25,6 +48,7 @@ export default function DashboardPage() {
 
     const fetchMatches = async () => {
       try {
+        setFetchingMatches(true);
         const token = localStorage.getItem("token");
         const res = await axios.get("/matches", {
           headers: { Authorization: `Bearer ${token}` },
@@ -32,11 +56,13 @@ export default function DashboardPage() {
         setMatches(res.data || []);
       } catch (err) {
         console.error("Error fetching matches:", err);
+      } finally {
+        setFetchingMatches(false);
       }
     };
 
     fetchMatches();
-  }, [router]);
+  }, [hydrated, router]);
 
   const handleSearch = async () => {
     if (!skill.trim()) {
@@ -64,33 +90,37 @@ export default function DashboardPage() {
 
   return (
     <Layout>
-      <div className="p-4 sm:p-6 max-w-6xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6 text-center sm:text-left">
+      <div className="p-4 sm:p-6 max-w-6xl mx-auto bg-gray-100">
+        <h1 className="text-2xl font-bold mb-6 text-black text-center sm:text-left">
           Skill Matchmaking
         </h1>
 
-        {/* Search */}
+        {/* Search Bar */}
         <div className="flex flex-col sm:flex-row gap-3 mb-10">
           <input
             type="text"
             value={skill}
             onChange={(e) => setSkill(e.target.value)}
             placeholder="Enter a skill..."
-            className="border p-2 rounded w-full sm:flex-1"
+            className="border p-2 rounded w-full sm:flex-1 text-black"
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           />
           <select
             value={type}
             onChange={(e) => setType(e.target.value)}
-            className="border p-2 rounded w-full sm:w-auto"
+            className="border p-2 rounded w-full text-white bg-indigo-600 sm:w-auto hover:bg-white hover:text-black"
           >
             <option value="offering">Offering</option>
             <option value="wanting">Wanting</option>
           </select>
           <button
             onClick={handleSearch}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full sm:w-auto"
+            className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-white hover:text-black w-full sm:w-auto flex items-center justify-center"
             disabled={loading}
           >
+            {loading ? (
+              <span className="animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4 mr-2"></span>
+            ) : null}
             {loading ? "Searching..." : "Search"}
           </button>
         </div>
@@ -98,10 +128,22 @@ export default function DashboardPage() {
         {/* Suggested Matches */}
         <section className="mb-12">
           <h2 className="text-xl font-semibold mb-4">Suggested Matches</h2>
-          {matches.length === 0 ? (
-            <p className="text-gray-500">No matches found yet.</p>
-          ) : (
+
+          {fetchingMatches ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {[...Array(3)].map((_, i) => (
+                <div
+                  key={i}
+                  className="w-full h-32 bg-gray-300 rounded animate-pulse"
+                />
+              ))}
+            </div>
+          ) : matches.length === 0 ? (
+            <p className="text-gray-500 text-center sm:text-left">
+              No matches found yet.
+            </p>
+          ) : (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 justify-items-center">
               {matches.map((user) => (
                 <UserCard
                   key={user._id || user.id}
@@ -118,10 +160,13 @@ export default function DashboardPage() {
         {/* Search Results */}
         <section className="mb-20">
           <h2 className="text-xl font-semibold mb-4">Search Results</h2>
+
           {results.length === 0 ? (
-            <p className="text-gray-500">No users found for this skill.</p>
+            <p className="text-gray-500 text-center sm:text-left">
+              No users found for this skill.
+            </p>
           ) : (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 justify-items-center">
               {results.map((user) => (
                 <UserCard
                   key={user._id || user.id}

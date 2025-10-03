@@ -49,9 +49,9 @@ export default function RegisterPage() {
 return (
   <div className="h-screen flex">
     {/* Left: Register Form */}
-    <div className="flex-1 flex items-center justify-center bg-gray-200 p-6">
-      <div className="bg-white p-6 md:pb-10 rounded-xl shadow-md w-full max-w-sm">
-        <h2 className="text-xl font-bold m-4 text-center text-[#6358DC]">
+    <div className="flex-1 flex items-center justify-center bg-white p-6">
+      <div className="bg-white p-6 md:pb-10 rounded-xl shadow-2xl w-full max-w-sm">
+        <h2 className="text-xl font-bold m-4 text-center text-purple-700">
           Register
         </h2>
 
@@ -111,7 +111,7 @@ return (
 
           <button
             type="submit"
-            className="bg-[#6358DC] text-white px-4 py-2 rounded hover:bg-[#4e47b3] transition"
+            className="bg-purple-700 text-white px-4 py-2 rounded hover:bg-[#4e47b3] transition"
           >
             Register
           </button>
@@ -135,7 +135,7 @@ return (
           Already have an account?{" "}
           <Link
             href="/login"
-            className="text-[#6358DC] hover:underline font-semibold"
+            className="text-purple-700 hover:underline font-semibold"
           >
             Login
           </Link>
@@ -149,7 +149,7 @@ return (
         <img
           src="/login-image.jpg"
           alt="Register illustration"
-          className="rounded-xl shadow-lg"
+          
         />
       </div>
     </div>
