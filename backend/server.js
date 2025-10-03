@@ -21,16 +21,21 @@ dotenv.config();
 
 const app = express();
 
+// Determine allowed frontend origins dynamically
+const allowedOrigins = [
+  process.env.FRONTEND_URL || "http://localhost:3000",
+];
+
 // Middleware
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://skill-exchange-node.vercel.app"],
+    origin: allowedOrigins,
     credentials: true,
   })
 );
 
-// DB Connection
+// Connect to MongoDB
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected"))
@@ -50,7 +55,7 @@ const server = http.createServer(app);
 // Initialize Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000", "https://skill-exchange-node.vercel.app"],
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true,
   },
