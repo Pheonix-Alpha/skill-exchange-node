@@ -21,19 +21,18 @@ dotenv.config();
 
 const app = express();
 
-// Determine allowed frontend origins dynamically
+
 const allowedOrigins = [
   process.env.FRONTEND_URL || "http://localhost:3000",
 ];
 
 // Middleware
 app.use(express.json());
-app.use(
-  cors({
-    origin: allowedOrigins,
-    credentials: true,
-  })
-);
+  app.use(cors({
+   
+    origin: ["http://localhost:3000", "https://skill-exchange-node.vercel.app"],// your frontend URL
+  credentials: true,               // if you need cookies
+}));
 
 // Connect to MongoDB
 mongoose
