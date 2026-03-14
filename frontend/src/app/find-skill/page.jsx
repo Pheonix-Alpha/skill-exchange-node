@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react"
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import api from "@/lib/axios";
@@ -31,9 +32,16 @@ const SORT_OPTIONS = [
   { label: "Newest", value: "newest" },
   { label: "Most skills", value: "skills" },
 ];
-
 export default function FindSkillPage() {
-  const searchParams = useSearchParams();
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <FindSkillPageContent />
+    </Suspense>
+  )
+}
+
+function FindSkillPageContent() {
+   const searchParams = useSearchParams()
 
   const [users, setUsers] = useState([]);
   const [filtered, setFiltered] = useState([]);
@@ -373,11 +381,7 @@ export default function FindSkillPage() {
         </div>
       </div>
 
-      <style jsx>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@800;900&display=swap');
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      `}</style>
+     
     </div>
   );
 }
