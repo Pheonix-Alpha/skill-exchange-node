@@ -1,56 +1,71 @@
-import { FaInstagram, FaTwitter, FaFacebook } from "react-icons/fa";
+import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="w-full bg-white py-12 px-4 sm:px-6 text-[#252525]">
-      <div className="max-w-[1295px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-        {/* Column 1: SkillExchange Info */}
-        <div>
-          <h3 className="text-xl sm:text-2xl font-bold mb-4">SkillExchange</h3>
-          <p className="text-sm text-gray-600 mb-4">
-            Powerful Freelance Marketplace System with ability to change the
-            Users (Freelancers & Clients)
-          </p>
-          <div className="flex space-x-4">
-            <FaInstagram className="text-lg sm:text-xl hover:text-[#1E88E5] cursor-pointer" />
-            <FaTwitter className="text-lg sm:text-xl hover:text-[#1E88E5] cursor-pointer" />
-            <FaFacebook className="text-lg sm:text-xl hover:text-[#1E88E5] cursor-pointer" />
+    <footer className="bg-[#0A0A0F] border-t border-white/5 px-6 py-16">
+      <div className="max-w-[1200px] mx-auto">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-14">
+          {/* Brand */}
+          <div className="col-span-2 md:col-span-1">
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="w-8 h-8 rounded-xl bg-[#4F8EF7] flex items-center justify-center">
+                <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+                  <path d="M3 9C3 5.686 5.686 3 9 3s6 2.686 6 6-2.686 6-6 6S3 12.314 3 9z" stroke="white" strokeWidth="1.5"/>
+                  <path d="M6 9h6M9 6v6" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+              </div>
+              <span className="text-white font-bold">Skill<span className="text-[#4F8EF7]">Exchange</span></span>
+            </div>
+            <p className="text-white/30 text-sm leading-relaxed mb-5">
+              A community where skills are the currency. Learn, teach, grow.
+            </p>
+            <div className="flex gap-3">
+              {["T", "I", "L"].map((s, i) => (
+                <a key={i} href="#" className="w-8 h-8 rounded-lg bg-white/5 border border-white/5 hover:border-white/10 hover:bg-white/10 flex items-center justify-center text-white/30 hover:text-white transition-all text-xs font-bold">
+                  {s}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h4 className="text-white text-xs font-black uppercase tracking-widest mb-5">Platform</h4>
+            <ul className="space-y-3">
+              {["Find a Skill", "Post Your Skill", "How it Works", "Pricing"].map((item) => (
+                <li key={item}>
+                  <a href="#" className="text-white/30 text-sm hover:text-white transition-colors">{item}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-white text-xs font-black uppercase tracking-widest mb-5">Community</h4>
+            <ul className="space-y-3">
+              {["Blog", "Success Stories", "Skill Directory", "Forum"].map((item) => (
+                <li key={item}>
+                  <a href="#" className="text-white/30 text-sm hover:text-white transition-colors">{item}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-white text-xs font-black uppercase tracking-widest mb-5">Company</h4>
+            <ul className="space-y-3">
+              {["About", "Privacy Policy", "Terms of Service", "Contact"].map((item) => (
+                <li key={item}>
+                  <a href="#" className="text-white/30 text-sm hover:text-white transition-colors">{item}</a>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 
-        {/* Column 2: For Teacher */}
-        <div>
-          <h4 className="text-lg sm:text-xl font-semibold mb-4">For Teacher</h4>
-          <ul className="space-y-3 text-sm sm:text-base text-gray-600">
-            <li className="hover:text-[#1E88E5] cursor-pointer">Find Teacher</li>
-            <li className="hover:text-[#1E88E5] cursor-pointer">Post Skill</li>
-            <li className="hover:text-[#1E88E5] cursor-pointer">Privacy Policy</li>
-          </ul>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-8 border-t border-white/5">
+          <p className="text-white/20 text-xs">© 2025 SkillExchange. All rights reserved.</p>
+          <p className="text-white/20 text-xs">Built for the community, by the community.</p>
         </div>
-
-        {/* Column 3: For Learner */}
-        <div>
-          <h4 className="text-lg sm:text-xl font-semibold mb-4">For Learner</h4>
-          <ul className="space-y-3 text-sm sm:text-base text-gray-600">
-            <li className="hover:text-[#1E88E5] cursor-pointer">Find Skill</li>
-            <li className="hover:text-[#1E88E5] cursor-pointer">Create Account</li>
-          </ul>
-        </div>
-
-        {/* Column 4: Contact Info */}
-        <div>
-          <h4 className="text-lg sm:text-xl font-semibold mb-4">Call Us</h4>
-          <ul className="space-y-3 text-sm sm:text-base text-gray-600">
-            <li>India</li>
-            <li>+91 123 456 7890</li>
-            <li>support@skillexchange.com</li>
-          </ul>
-        </div>
-      </div>
-
-      {/* Bottom Text */}
-      <div className="text-center mt-10 text-xs sm:text-sm text-gray-500">
-        © 2022 Spacelance. All rights reserved.
       </div>
     </footer>
   );

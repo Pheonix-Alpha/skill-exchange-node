@@ -1,62 +1,80 @@
-// components/FAQSection.js
 "use client";
+
 import { useState } from "react";
-import { FaChevronDown } from "react-icons/fa";
+import { Plus, Minus } from "lucide-react";
 
 const faqs = [
   {
-    question: "How do I find a skill?",
-    answer: "You can use the search bar or browse categories to find the skill you’re looking for.",
+    question: "Is SkillExchange completely free?",
+    answer: "Yes — entirely free. No subscription, no credits, no hidden fees. You trade your skills directly with others in the community.",
   },
   {
-    question: "Is it free to use SkillExchange?",
-    answer: "Yes, SkillExchange is completely free for both learners and teachers.",
+    question: "What if my skill isn't listed?",
+    answer: "You can add any custom skill to your profile. If you can teach it, someone here probably wants to learn it.",
   },
   {
-    question: "Can I teach and learn at the same time?",
-    answer: "Absolutely! You can post skills you offer and also search for ones you want to learn.",
+    question: "Can I both teach and learn at the same time?",
+    answer: "Absolutely. Most members do. List what you offer and what you want — our matching finds people who complement you.",
+  },
+  {
+    question: "How does the exchange actually work?",
+    answer: "You send a request specifying what you'll offer and what you'd like in return. The other person accepts, declines or counter-proposes. Once agreed, you coordinate sessions yourselves.",
+  },
+  {
+    question: "What if someone doesn't follow through?",
+    answer: "Ratings and reviews keep everyone accountable. Consistently poor follow-through leads to reduced visibility. We're building a trust-based community.",
   },
 ];
 
 export default function FAQSection() {
-  const [openIndex, setOpenIndex] = useState(null);
-
-  const toggleFAQ = (index) => {
-    setOpenIndex(openIndex === index ? null : index);
-  };
+  const [open, setOpen] = useState(0);
 
   return (
-    <div className="w-full bg-white py-20 px-4">
-      <div className="max-w-[1295px] mx-auto">
-        <h2 className="text-3xl sm:text-4xl font-bold text-[#252525] text-center mb-12">
-          Frequently Asked Questions
-        </h2>
+    <section className="bg-[#0D0D14] py-24 px-6 border-t border-white/5">
+      <div className="max-w-[800px] mx-auto">
+        <div className="text-center mb-14">
+          <p className="text-[#4F8EF7] text-xs font-bold uppercase tracking-[0.2em] mb-3">Got questions?</p>
+          <h2 className="text-4xl md:text-5xl font-black text-white" >
+            FAQ
+          </h2>
+        </div>
 
-        <div className="space-y-6">
-          {faqs.map((item, index) => (
-            <div key={index} className="border-b border-gray-200 pb-4">
+        <div className="space-y-2">
+          {faqs.map((faq, i) => (
+            <div
+              key={i}
+              className={`rounded-2xl border transition-all ${
+                open === i
+                  ? "border-[#4F8EF7]/30 bg-[#4F8EF7]/5"
+                  : "border-white/5 bg-white/[0.02] hover:border-white/10"
+              }`}
+            >
               <button
-                onClick={() => toggleFAQ(index)}
-                className="w-full flex justify-between items-center text-left"
+                onClick={() => setOpen(open === i ? null : i)}
+                className="w-full flex items-center justify-between gap-4 p-5 text-left"
               >
-                <h4 className="text-lg sm:text-xl font-semibold text-[#1E88E5]">
-                  {item.question}
-                </h4>
-                <FaChevronDown
-                  className={`transition-transform duration-300 ${
-                    openIndex === index ? "rotate-180" : ""
-                  }`}
-                />
+                <span className={`text-sm font-semibold transition-colors ${open === i ? "text-white" : "text-white/60"}`}>
+                  {faq.question}
+                </span>
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all ${
+                  open === i ? "bg-[#4F8EF7] text-white" : "bg-white/5 text-white/30"
+                }`}>
+                  {open === i ? <Minus size={13} /> : <Plus size={13} />}
+                </div>
               </button>
-              {openIndex === index && (
-                <p className="mt-3 text-gray-700 transition-all duration-300">
-                  {item.answer}
-                </p>
+              {open === i && (
+                <div className="px-5 pb-5">
+                  <p className="text-white/40 text-sm leading-relaxed">{faq.answer}</p>
+                </div>
               )}
             </div>
           ))}
         </div>
       </div>
-    </div>
+
+      <style jsx>{`
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@800;900&display=swap');
+      `}</style>
+    </section>
   );
 }

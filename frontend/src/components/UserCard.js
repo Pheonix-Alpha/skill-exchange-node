@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import api from "@/lib/axios";
+import { ArrowLeftRight, X } from "lucide-react";
 
 export default function UserCard({
   user,
@@ -14,140 +15,166 @@ export default function UserCard({
   const [skillWanted, setSkillWanted] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+
   const requestKey = user.id || user._id;
   const isDisabled = disabledRequests.has(requestKey);
-  const currentUser = JSON.parse(localStorage.getItem("user"));
+  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
 
   const handleSendRequest = async () => {
     if (!skillOffered || !skillWanted) {
-      setMessage("⚠️ Please select both skills");
+      setMessage("Please select both skills to continue.");
       return;
     }
-
     try {
       setLoading(true);
       setMessage("");
       const token = localStorage.getItem("token");
-
       await api.post(
         "/exchange/send",
-        {
-          recipientId: requestKey,
-          skillOffered,
-          skillWanted,
-          strict: isFromMatch,
-        },
+        { recipientId: requestKey, skillOffered, skillWanted, strict: isFromMatch },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      setMessage("✅ Request sent successfully!");
+      setMessage("success");
       onRequestSent?.(requestKey);
-      setModalOpen(false);
+      setTimeout(() => setModalOpen(false), 1200);
     } catch (err) {
-      if (err.response) setMessage(err.response.data?.message || "❌ Failed");
-      else if (err.request) setMessage("❌ No response from server");
-      else setMessage("❌ Error sending request");
+      setMessage(err.response?.data?.message || "Failed to send request. Try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-4 mb-4 relative w-full sm:w-80">
-      {/* Avatar and User Info */}
-      <div className="flex items-center mb-2">
-        <div className="w-12 h-12 rounded-full bg-[#6358DC] text-white flex items-center justify-center text-lg font-bold mr-4">
-          {user.username.charAt(0).toUpperCase()}
+    <>
+      <div className="group bg-[#111118] border border-white/5 hover:border-white/10 rounded-2xl p-5 transition-all hover:bg-[#14141e]">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#4F8EF7] flex items-center justify-center text-white text-sm font-black shrink-0">
+              {user.username.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <h3 className="text-white font-semibold text-sm leading-none">{user.username}</h3>
+              <p className="text-white/30 text-xs mt-0.5">Skill exchanger</p>
+            </div>
+          </div>
+          <button
+            onClick={() => !isDisabled && setModalOpen(true)}
+            disabled={isDisabled}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+              isDisabled
+                ? "bg-white/5 text-white/20 cursor-not-allowed"
+                : "bg-[#4F8EF7]/10 border border-[#4F8EF7]/20 text-[#4F8EF7] hover:bg-[#4F8EF7] hover:text-white"
+            }`}
+          >
+            <ArrowLeftRight size={12} />
+            {isDisabled ? "Sent" : "Exchange"}
+          </button>
         </div>
-        <h3 className="text-lg font-semibold">{user.username}</h3>
-      </div>
 
-      <div className="text-sm mb-1">
-        <strong>Offering:</strong> {user.offeringSkills.join(", ")}
+        <div className="space-y-2.5">
+          <div>
+            <p className="text-white/20 text-[10px] font-bold uppercase tracking-widest mb-1.5">Offering</p>
+            <div className="flex flex-wrap gap-1.5">
+              {user.offeringSkills.slice(0, 3).map((s, i) => (
+                <span key={i} className="px-2 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-medium">
+                  {s}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-white/20 text-[10px] font-bold uppercase tracking-widest mb-1.5">Wanting</p>
+            <div className="flex flex-wrap gap-1.5">
+              {user.wantingSkills.slice(0, 3).map((s, i) => (
+                <span key={i} className="px-2 py-0.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[11px] font-medium">
+                  {s}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
-      <div className="text-sm">
-        <strong>Wanting:</strong> {user.wantingSkills.join(", ")}
-      </div>
-
-      {/* Send Request Button */}
-      <button
-        onClick={() => setModalOpen(true)}
-        className={`absolute top-4 right-4 px-3 py-1 rounded ${
-          isDisabled
-            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-            : "bg-blue-600 text-white hover:bg-blue-700"
-        }`}
-        disabled={isDisabled}
-      >
-        {isDisabled ? "Requested" : "Send"}
-      </button>
 
       {/* Modal */}
-      {modalOpen && !isDisabled && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-6 rounded-lg w-full max-w-sm relative animate-slideIn">
-            <h4 className="text-lg font-semibold mb-4">Send Request</h4>
-
-            {/* Skill selection */}
-            <select
-              value={skillOffered}
-              onChange={(e) => setSkillOffered(e.target.value)}
-              className="border p-2 rounded w-full mb-3"
+      {modalOpen && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#111118] border border-white/10 rounded-2xl w-full max-w-sm p-6 relative">
+            <button
+              onClick={() => setModalOpen(false)}
+              className="absolute top-4 right-4 w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all"
             >
-              <option value="">Select skill to offer</option>
-              {currentUser?.skillsOffered?.map((s, i) => (
-                <option key={i} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
+              <X size={14} />
+            </button>
 
-            <select
-              value={skillWanted}
-              onChange={(e) => setSkillWanted(e.target.value)}
-              className="border p-2 rounded w-full mb-3"
-            >
-              <option value="">Select skill to request</option>
-              {user.offeringSkills.map((s, i) => (
-                <option key={i} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
+            <h4 className="text-white font-bold text-base mb-1">Propose an exchange</h4>
+            <p className="text-white/30 text-xs mb-5">
+              with <span className="text-white/60 font-medium">{user.username}</span>
+            </p>
 
-            {/* Buttons */}
-            <div className="flex justify-end gap-2 mt-2">
-              <button
-                onClick={() => setModalOpen(false)}
-                className="px-3 py-1 rounded bg-gray-300 hover:bg-gray-400"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSendRequest}
-                disabled={loading}
-                className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 flex items-center"
-              >
-                {loading && (
-                  <span className="animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4 mr-2"></span>
-                )}
-                {loading ? "Sending..." : "Send"}
-              </button>
+            <div className="space-y-3 mb-5">
+              <div>
+                <label className="text-white/30 text-[10px] font-bold uppercase tracking-widest block mb-1.5">You'll offer</label>
+                <select
+                  value={skillOffered}
+                  onChange={(e) => setSkillOffered(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white outline-none focus:border-[#4F8EF7]/50 transition-all"
+                >
+                  <option value="">Select a skill to offer</option>
+                  {currentUser?.skillsOffered?.map((s, i) => (
+                    <option key={i} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center justify-center py-1">
+                <ArrowLeftRight size={14} className="text-white/20" />
+              </div>
+
+              <div>
+                <label className="text-white/30 text-[10px] font-bold uppercase tracking-widest block mb-1.5">You'll receive</label>
+                <select
+                  value={skillWanted}
+                  onChange={(e) => setSkillWanted(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white outline-none focus:border-[#4F8EF7]/50 transition-all"
+                >
+                  <option value="">Select a skill to request</option>
+                  {user.offeringSkills.map((s, i) => (
+                    <option key={i} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
-            {/* Message */}
-            {message && (
-              <p
-                className={`mt-2 text-sm ${
-                  message.includes("✅") ? "text-green-600" : "text-red-600"
-                }`}
-              >
-                {message}
-              </p>
+            {message === "success" ? (
+              <div className="py-3 text-center text-emerald-400 text-sm font-semibold">
+                ✓ Request sent successfully
+              </div>
+            ) : (
+              <>
+                {message && <p className="text-red-400 text-xs mb-3">{message}</p>}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setModalOpen(false)}
+                    className="flex-1 py-2.5 rounded-xl border border-white/10 text-white/40 text-sm font-medium hover:text-white hover:border-white/20 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSendRequest}
+                    disabled={loading}
+                    className="flex-1 py-2.5 rounded-xl bg-[#4F8EF7] hover:bg-[#3a7be8] text-white text-sm font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {loading && (
+                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    )}
+                    {loading ? "Sending..." : "Send request"}
+                  </button>
+                </div>
+              </>
             )}
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
