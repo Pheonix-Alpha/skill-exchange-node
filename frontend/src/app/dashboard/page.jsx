@@ -27,15 +27,14 @@ export default function DashboardPage() {
   const [fetchingMatches, setFetchingMatches] = useState(false);
   const [typeOpen, setTypeOpen] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   const router = useRouter();
 
- const [currentUser, setCurrentUser] = useState(null);
-
-useEffect(() => {
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  setCurrentUser(user);
-}, []);
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    setCurrentUser(user);
+  }, []);
 
   useEffect(() => { setHydrated(true); }, []);
 
@@ -92,228 +91,577 @@ useEffect(() => {
   };
 
   const stats = [
-    { label: "Suggested matches", value: matches.length, icon: Sparkles, color: "text-[#4F8EF7]", bg: "bg-[#4F8EF7]/10", border: "border-[#4F8EF7]/20" },
-    { label: "Skills you offer", value: currentUser?.skillsOffered?.length || 0, icon: Zap, color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
-    { label: "Skills you want", value: currentUser?.skillsWanted?.length || 0, icon: TrendingUp, color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/20" },
-    { label: "Requests sent", value: disabledRequests.size, icon: Users, color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20" },
+    {
+      label: "Suggested matches",
+      value: matches.length,
+      icon: Sparkles,
+      accent: "#3B6FE8",
+      bg: "#EEF3FF",
+      border: "#D6E2FF",
+      textColor: "#3B6FE8",
+    },
+    {
+      label: "Skills you offer",
+      value: currentUser?.skillsOffered?.length || 0,
+      icon: Zap,
+      accent: "#0EA67A",
+      bg: "#E8F8F3",
+      border: "#C0ECD9",
+      textColor: "#0EA67A",
+    },
+    {
+      label: "Skills you want",
+      value: currentUser?.skillsWanted?.length || 0,
+      icon: TrendingUp,
+      accent: "#7C4DDA",
+      bg: "#F3EEFF",
+      border: "#DDD0F8",
+      textColor: "#7C4DDA",
+    },
+    {
+      label: "Requests sent",
+      value: disabledRequests.size,
+      icon: Users,
+      accent: "#D97706",
+      bg: "#FEF9EC",
+      border: "#FDE8A4",
+      textColor: "#D97706",
+    },
   ];
 
   return (
     <Layout>
-      <div className="min-h-screen bg-[#0A0A0F] px-4 sm:px-6 py-10 max-w-6xl mx-auto">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=DM+Sans:wght@300;400;500;600&display=swap');
 
-        {/* ── Header ── */}
-        <div className="mb-10">
-          <p className="text-[#4F8EF7] text-xs font-bold uppercase tracking-[0.2em] mb-2">Dashboard</p>
-          <h1
-            className="text-4xl md:text-5xl font-black text-white leading-tight"
-          
-          >
-            Welcome back
-           {currentUser?.name && (
-  <span className="text-white/30">, {currentUser.name.split(" ")[0]}</span>
-)}
-          </h1>
-          <p className="text-white/30 text-sm mt-2">Here are your skill matches and search tools.</p>
-        </div>
+        .dash-root {
+          min-height: 100vh;
+          background: #F7F6F3;
+          font-family: 'DM Sans', sans-serif;
+          color: #1A1A22;
+        }
 
-        {/* ── Stats row ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-10">
-          {stats.map((s, i) => {
-            const Icon = s.icon;
-            return (
-              <div key={i} className={`p-4 rounded-2xl border ${s.border} bg-white/[0.02]`}>
-                <div className={`w-8 h-8 rounded-lg ${s.bg} flex items-center justify-center mb-3`}>
-                  <Icon size={15} className={s.color} />
-                </div>
-                <p className="text-white font-black text-2xl leading-none">{s.value}</p>
-                <p className="text-white/30 text-xs mt-1">{s.label}</p>
-              </div>
-            );
-          })}
-        </div>
+        .dash-inner {
+          max-width: 1100px;
+          margin: 0 auto;
+          padding: 56px 24px 80px;
+        }
 
-        {/* ── Search bar ── */}
-        <div className="mb-12 p-6 bg-white/[0.02] border border-white/5 rounded-2xl">
-          <p className="text-white/40 text-[11px] font-bold uppercase tracking-widest mb-4">
-            Search by skill
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3">
+        /* ── Header ── */
+        .dash-eyebrow {
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          color: #3B6FE8;
+          margin-bottom: 8px;
+        }
 
-            {/* Skill input */}
-            <div className="flex-1 flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus-within:border-[#4F8EF7]/50 transition-all">
-              <Search size={15} className="text-white/20 shrink-0" />
-              <input
-                type="text"
-                value={skill}
-                onChange={(e) => setSkill(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                placeholder="e.g. React, Python, Figma..."
-                className="flex-1 bg-transparent text-white text-sm outline-none placeholder:text-white/20"
-              />
-            </div>
+        .dash-title {
+          font-family: 'Fraunces', Georgia, serif;
+          font-size: clamp(2rem, 5vw, 3.2rem);
+          font-weight: 700;
+          line-height: 1.1;
+          color: #1A1A22;
+          margin: 0 0 6px;
+        }
 
-            {/* Type dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setTypeOpen((p) => !p)}
-                className="flex items-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm font-medium text-white/60 hover:text-white hover:border-white/20 transition-all w-full sm:w-auto whitespace-nowrap"
-              >
-                <span className={`w-1.5 h-1.5 rounded-full ${type === "offering" ? "bg-emerald-400" : "bg-[#4F8EF7]"}`} />
-                {type === "offering" ? "Offering" : "Wanting"}
-                <ChevronDown size={13} />
-              </button>
-              {typeOpen && (
-                <div className="absolute top-12 right-0 bg-[#111118] border border-white/10 rounded-xl overflow-hidden z-20 min-w-[140px] shadow-xl">
-                  {["offering", "wanting"].map((opt) => (
-                    <button
-                      key={opt}
-                      onClick={() => { setType(opt); setTypeOpen(false); }}
-                      className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 transition-colors ${
-                        type === opt ? "text-white bg-white/5" : "text-white/40 hover:text-white hover:bg-white/5"
-                      }`}
-                    >
-                      <span className={`w-1.5 h-1.5 rounded-full ${opt === "offering" ? "bg-emerald-400" : "bg-[#4F8EF7]"}`} />
-                      {opt.charAt(0).toUpperCase() + opt.slice(1)}
-                    </button>
-                  ))}
-                </div>
+        .dash-title span {
+          color: #BDBDBD;
+          font-style: italic;
+          font-weight: 400;
+        }
+
+        .dash-subtitle {
+          font-size: 14px;
+          color: #8B8B9A;
+          margin: 0 0 40px;
+        }
+
+        /* ── Stats ── */
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 12px;
+          margin-bottom: 36px;
+        }
+
+        @media (min-width: 768px) {
+          .stats-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        .stat-card {
+          background: #fff;
+          border: 1.5px solid #EBEBEB;
+          border-radius: 16px;
+          padding: 18px;
+          transition: box-shadow 0.2s, transform 0.2s;
+        }
+
+        .stat-card:hover {
+          box-shadow: 0 8px 24px rgba(0,0,0,0.07);
+          transform: translateY(-1px);
+        }
+
+        .stat-icon-wrap {
+          width: 34px;
+          height: 34px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 14px;
+        }
+
+        .stat-value {
+          font-family: 'Fraunces', serif;
+          font-size: 2rem;
+          font-weight: 700;
+          line-height: 1;
+          color: #1A1A22;
+        }
+
+        .stat-label {
+          font-size: 12px;
+          color: #9B9BAD;
+          margin-top: 4px;
+        }
+
+        /* ── Search ── */
+        .search-box {
+          background: #fff;
+          border: 1.5px solid #EBEBEB;
+          border-radius: 20px;
+          padding: 24px;
+          margin-bottom: 48px;
+          box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        }
+
+        .search-label {
+          font-size: 10.5px;
+          font-weight: 600;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #BDBDBD;
+          margin-bottom: 14px;
+        }
+
+        .search-row {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        @media (min-width: 640px) {
+          .search-row { flex-direction: row; }
+        }
+
+        .search-input-wrap {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          background: #F7F6F3;
+          border: 1.5px solid #E8E8E8;
+          border-radius: 12px;
+          padding: 11px 16px;
+          transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-input-wrap:focus-within {
+          border-color: #3B6FE8;
+          box-shadow: 0 0 0 3px rgba(59,111,232,0.1);
+        }
+
+        .search-input {
+          flex: 1;
+          background: transparent;
+          border: none;
+          outline: none;
+          font-family: 'DM Sans', sans-serif;
+          font-size: 14px;
+          color: #1A1A22;
+        }
+
+        .search-input::placeholder { color: #C0C0CA; }
+
+        /* Dropdown */
+        .dropdown-wrapper { position: relative; }
+
+        .dropdown-btn {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 11px 16px;
+          background: #F7F6F3;
+          border: 1.5px solid #E8E8E8;
+          border-radius: 12px;
+          font-family: 'DM Sans', sans-serif;
+          font-size: 14px;
+          font-weight: 500;
+          color: #444455;
+          cursor: pointer;
+          transition: border-color 0.2s;
+          white-space: nowrap;
+        }
+
+        .dropdown-btn:hover { border-color: #C0C0CA; }
+
+        .dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+
+        .dot-green { background: #0EA67A; }
+        .dot-blue  { background: #3B6FE8; }
+
+        .dropdown-menu {
+          position: absolute;
+          top: calc(100% + 6px);
+          right: 0;
+          background: #fff;
+          border: 1.5px solid #EBEBEB;
+          border-radius: 14px;
+          overflow: hidden;
+          z-index: 20;
+          min-width: 150px;
+          box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+        }
+
+        .dropdown-item {
+          width: 100%;
+          text-align: left;
+          padding: 11px 16px;
+          font-family: 'DM Sans', sans-serif;
+          font-size: 14px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          cursor: pointer;
+          transition: background 0.15s;
+          border: none;
+          background: transparent;
+          color: #444455;
+        }
+
+        .dropdown-item:hover { background: #F7F6F3; }
+        .dropdown-item.active { background: #F0F4FF; color: #3B6FE8; font-weight: 500; }
+
+        /* Search button */
+        .search-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 11px 22px;
+          background: #1A1A22;
+          color: #fff;
+          font-family: 'DM Sans', sans-serif;
+          font-size: 14px;
+          font-weight: 600;
+          border: none;
+          border-radius: 12px;
+          cursor: pointer;
+          transition: background 0.2s, transform 0.15s;
+          white-space: nowrap;
+        }
+
+        .search-btn:hover { background: #2E2E3A; transform: translateY(-1px); }
+        .search-btn:disabled { opacity: 0.5; transform: none; cursor: not-allowed; }
+
+        /* ── Section header ── */
+        .section-head {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 20px;
+        }
+
+        .section-title {
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #9B9BAD;
+        }
+
+        .section-badge {
+          padding: 2px 8px;
+          border-radius: 99px;
+          background: #F0F0F5;
+          border: 1px solid #E0E0EA;
+          font-size: 10.5px;
+          font-weight: 700;
+          color: #7070859;
+          color: #70708A;
+        }
+
+        .section-badge-blue {
+          background: #EEF3FF;
+          border-color: #D6E2FF;
+          color: #3B6FE8;
+        }
+
+        /* ── Cards grid ── */
+        .cards-grid {
+          display: grid;
+          gap: 16px;
+          grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 640px)  { .cards-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (min-width: 1024px) { .cards-grid { grid-template-columns: repeat(3, 1fr); } }
+
+        /* ── Empty state ── */
+        .empty-state {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 56px 24px;
+          text-align: center;
+          background: #fff;
+          border: 1.5px dashed #E0E0EA;
+          border-radius: 20px;
+        }
+
+        .empty-icon-wrap {
+          width: 52px;
+          height: 52px;
+          border-radius: 16px;
+          background: #F4F4F8;
+          border: 1.5px solid #EAEAF0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 16px;
+        }
+
+        .empty-title {
+          font-family: 'Fraunces', serif;
+          font-size: 18px;
+          font-weight: 600;
+          color: #1A1A22;
+          margin: 0 0 6px;
+        }
+
+        .empty-desc {
+          font-size: 13.5px;
+          color: #9B9BAD;
+          max-width: 260px;
+          line-height: 1.5;
+          margin: 0;
+        }
+
+        /* ── Skeleton ── */
+        .skeleton-card {
+          background: #fff;
+          border: 1.5px solid #EBEBEB;
+          border-radius: 20px;
+          padding: 20px;
+        }
+
+        @keyframes shimmer {
+          0% { background-position: -400px 0; }
+          100% { background-position: 400px 0; }
+        }
+
+        .shimmer {
+          background: linear-gradient(90deg, #F0F0F0 25%, #E8E8E8 50%, #F0F0F0 75%);
+          background-size: 800px 100%;
+          animation: shimmer 1.4s infinite;
+          border-radius: 6px;
+        }
+
+        section { margin-bottom: 48px; }
+      `}</style>
+
+      <div className="dash-root">
+        <div className="dash-inner">
+
+          {/* ── Header ── */}
+          <div>
+            <p className="dash-eyebrow">Dashboard</p>
+            <h1 className="dash-title">
+              Welcome back
+              {currentUser?.name && (
+                <span>, {currentUser.name.split(" ")[0]}</span>
               )}
-            </div>
-
-            {/* Search button */}
-            <button
-              onClick={handleSearch}
-              disabled={loading}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-[#4F8EF7] hover:bg-[#3a7be8] text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-blue-500/20 hover:-translate-y-px disabled:opacity-50 disabled:hover:translate-y-0 whitespace-nowrap"
-            >
-              {loading ? (
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>
-                  Search
-                  <ArrowRight size={15} />
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* ── Suggested Matches ── */}
-        <section className="mb-12">
-          <div className="flex items-center gap-2 mb-6">
-            <Sparkles size={15} className="text-[#4F8EF7]" />
-            <h2 className="text-white/60 text-xs font-black uppercase tracking-widest">
-              Suggested matches
-            </h2>
-            {!fetchingMatches && matches.length > 0 && (
-              <span className="px-2 py-0.5 rounded-full bg-[#4F8EF7]/10 border border-[#4F8EF7]/20 text-[#4F8EF7] text-[10px] font-bold">
-                {matches.length}
-              </span>
-            )}
+            </h1>
+            <p className="dash-subtitle">Here are your skill matches and search tools.</p>
           </div>
 
-          {fetchingMatches ? (
-            <LoadingSkeleton />
-          ) : matches.length === 0 ? (
-            <EmptyState
-              icon={<Sparkles size={22} className="text-white/20" />}
-              title="No matches yet"
-              desc="Add more skills to your profile to unlock better matches."
-            />
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {matches.map((user) => (
-                <UserCard
-                  key={user._id || user.id}
-                  user={user}
-                  disabledRequests={disabledRequests}
-                  onRequestSent={handleRequestSent}
-                  isFromMatch={true}
-                  isMutual={true}
+          {/* ── Stats ── */}
+          <div className="stats-grid">
+            {stats.map((s, i) => {
+              const Icon = s.icon;
+              return (
+                <div key={i} className="stat-card">
+                  <div
+                    className="stat-icon-wrap"
+                    style={{ background: s.bg, border: `1.5px solid ${s.border}` }}
+                  >
+                    <Icon size={15} style={{ color: s.accent }} />
+                  </div>
+                  <p className="stat-value">{s.value}</p>
+                  <p className="stat-label">{s.label}</p>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ── Search ── */}
+          <div className="search-box">
+            <p className="search-label">Search by skill</p>
+            <div className="search-row">
+
+              <div className="search-input-wrap">
+                <Search size={15} color="#C0C0CA" />
+                <input
+                  type="text"
+                  value={skill}
+                  onChange={(e) => setSkill(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                  placeholder="e.g. React, Python, Figma..."
+                  className="search-input"
                 />
-              ))}
-            </div>
-          )}
-        </section>
+              </div>
 
-        {/* ── Search Results ── */}
-        {searched && (
-          <section className="mb-20">
-            <div className="flex items-center gap-2 mb-6">
-              <Search size={15} className="text-white/30" />
-              <h2 className="text-white/60 text-xs font-black uppercase tracking-widest">
-                Search results
-              </h2>
-              {!loading && (
-                <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-white/40 text-[10px] font-bold">
-                  {results.length}
-                </span>
+              <div className="dropdown-wrapper">
+                <button className="dropdown-btn" onClick={() => setTypeOpen((p) => !p)}>
+                  <span className={`dot ${type === "offering" ? "dot-green" : "dot-blue"}`} />
+                  {type === "offering" ? "Offering" : "Wanting"}
+                  <ChevronDown size={13} />
+                </button>
+                {typeOpen && (
+                  <div className="dropdown-menu">
+                    {["offering", "wanting"].map((opt) => (
+                      <button
+                        key={opt}
+                        className={`dropdown-item ${type === opt ? "active" : ""}`}
+                        onClick={() => { setType(opt); setTypeOpen(false); }}
+                      >
+                        <span className={`dot ${opt === "offering" ? "dot-green" : "dot-blue"}`} />
+                        {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <button className="search-btn" onClick={handleSearch} disabled={loading}>
+                {loading ? (
+                  <span style={{
+                    width: 16, height: 16, border: "2px solid rgba(255,255,255,0.3)",
+                    borderTopColor: "#fff", borderRadius: "50%",
+                    animation: "spin 0.7s linear infinite", display: "inline-block"
+                  }} />
+                ) : (
+                  <>Search <ArrowRight size={15} /></>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* ── Suggested Matches ── */}
+          <section>
+            <div className="section-head">
+              <Sparkles size={14} color="#3B6FE8" />
+              <span className="section-title">Suggested matches</span>
+              {!fetchingMatches && matches.length > 0 && (
+                <span className="section-badge section-badge-blue">{matches.length}</span>
               )}
             </div>
 
-            {loading ? (
+            {fetchingMatches ? (
               <LoadingSkeleton />
-            ) : results.length === 0 ? (
+            ) : matches.length === 0 ? (
               <EmptyState
-                icon={<Search size={22} className="text-white/20" />}
-                title={`No results for "${skill}"`}
-                desc="Try a different skill name or switch between offering and wanting."
+                icon={<Sparkles size={20} color="#C0C0CA" />}
+                title="No matches yet"
+                desc="Add more skills to your profile to unlock better matches."
               />
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {results.map((user) => (
+              <div className="cards-grid">
+                {matches.map((user) => (
                   <UserCard
                     key={user._id || user.id}
                     user={user}
                     disabledRequests={disabledRequests}
                     onRequestSent={handleRequestSent}
-                    isFromMatch={false}
-                    isMutual={false}
+                    isFromMatch={true}
+                    isMutual={true}
                   />
                 ))}
               </div>
             )}
           </section>
-        )}
 
+          {/* ── Search Results ── */}
+          {searched && (
+            <section>
+              <div className="section-head">
+                <Search size={14} color="#9B9BAD" />
+                <span className="section-title">Search results</span>
+                {!loading && (
+                  <span className="section-badge">{results.length}</span>
+                )}
+              </div>
+
+              {loading ? (
+                <LoadingSkeleton />
+              ) : results.length === 0 ? (
+                <EmptyState
+                  icon={<Search size={20} color="#C0C0CA" />}
+                  title={`No results for "${skill}"`}
+                  desc="Try a different skill name or switch between offering and wanting."
+                />
+              ) : (
+                <div className="cards-grid">
+                  {results.map((user) => (
+                    <UserCard
+                      key={user._id || user.id}
+                      user={user}
+                      disabledRequests={disabledRequests}
+                      onRequestSent={handleRequestSent}
+                      isFromMatch={false}
+                      isMutual={false}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+
+        </div>
       </div>
-
-     
     </Layout>
   );
 }
 
 function LoadingSkeleton() {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
       {Array(3).fill(0).map((_, i) => (
-        <div
-          key={i}
-          className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 animate-pulse"
-          style={{ animationDelay: `${i * 0.1}s` }}
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white/5" />
-              <div className="space-y-1.5">
-                <div className="w-24 h-3 bg-white/5 rounded-full" />
-                <div className="w-16 h-2.5 bg-white/5 rounded-full" />
-              </div>
+        <div key={i} className="skeleton-card">
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
+            <div className="shimmer" style={{ width: 40, height: 40, borderRadius: 10 }} />
+            <div style={{ flex: 1 }}>
+              <div className="shimmer" style={{ width: "60%", height: 12, marginBottom: 6 }} />
+              <div className="shimmer" style={{ width: "40%", height: 10 }} />
             </div>
-            <div className="w-20 h-7 rounded-xl bg-white/5" />
           </div>
-          <div className="space-y-3">
-            <div className="w-14 h-2 bg-white/5 rounded-full" />
-            <div className="flex gap-1.5">
-              <div className="w-16 h-5 rounded-lg bg-white/5" />
-              <div className="w-20 h-5 rounded-lg bg-white/5" />
-            </div>
-            <div className="w-14 h-2 bg-white/5 rounded-full mt-1" />
-            <div className="flex gap-1.5">
-              <div className="w-14 h-5 rounded-lg bg-white/5" />
-              <div className="w-18 h-5 rounded-lg bg-white/5" />
-            </div>
+          <div className="shimmer" style={{ width: "30%", height: 10, marginBottom: 8 }} />
+          <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+            <div className="shimmer" style={{ width: 60, height: 22, borderRadius: 8 }} />
+            <div className="shimmer" style={{ width: 80, height: 22, borderRadius: 8 }} />
+          </div>
+          <div className="shimmer" style={{ width: "30%", height: 10, marginBottom: 8 }} />
+          <div style={{ display: "flex", gap: 6 }}>
+            <div className="shimmer" style={{ width: 55, height: 22, borderRadius: 8 }} />
+            <div className="shimmer" style={{ width: 70, height: 22, borderRadius: 8 }} />
           </div>
         </div>
       ))}
@@ -323,12 +671,10 @@ function LoadingSkeleton() {
 
 function EmptyState({ icon, title, desc }) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center border border-white/5 rounded-2xl bg-white/[0.01]">
-      <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center mb-4">
-        {icon}
-      </div>
-      <h3 className="text-white font-bold text-base mb-1">{title}</h3>
-      <p className="text-white/30 text-sm max-w-xs">{desc}</p>
+    <div className="empty-state">
+      <div className="empty-icon-wrap">{icon}</div>
+      <h3 className="empty-title">{title}</h3>
+      <p className="empty-desc">{desc}</p>
     </div>
   );
 }
