@@ -44,7 +44,7 @@ router.post("/create", authMiddleware, async (req, res) => {
       proposer: req.user,
       recipient: recipientId,
       dateTime,
-      status: "scheduled",
+      status: "confirmed",
       roomId: `skill-exchange-${nanoid(12)}`, // ✅ CREATED HERE
     });
 
