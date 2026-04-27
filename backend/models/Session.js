@@ -7,7 +7,7 @@ const sessionSchema = new mongoose.Schema(
     recipient: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     dateTime: { type: Date, required: true },
     status: { type: String, enum: ["pending", "confirmed", "rejected"], default: "pending" },
-    zoomLink: { type: String },
+    roomId: { type: String },
   },
   { timestamps: true }
 );

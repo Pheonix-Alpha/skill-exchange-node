@@ -93,9 +93,9 @@ router.put("/:id", authMiddleware, async (req, res) => {
 
     session.status = status;
 
-    // If confirmed, generate Zoom link
+    // If confirmed, generate unique Jitsi room ID
     if (status === "confirmed") {
-      session.zoomLink = `https://zoom.us/j/${Math.floor(Math.random() * 1000000000)}`;
+      session.roomId = `skill-exchange-${nanoid(12)}`;
     }
 
     await session.save();
@@ -115,7 +115,7 @@ router.delete("/:id", authMiddleware, async (req, res) => {
       return res.status(403).json({ message: "Not authorized" });
     }
 
-    await session.remove();
+    await session.deleteOne();
     res.json({ message: "Session deleted" });
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import Layout from "@/components/Layout";
 import axios from "@/lib/axios";
 import {
@@ -175,14 +176,14 @@ export default function SessionPage() {
                 const av = getAvatarColor(exchange.recipient?.name || "");
 
                 let state = "idle"; // idle | requested | confirmed | rejected
-                let zoomLink = null;
+                let roomId = null;
 
                 if (session) {
                   if (session.status === "pending") state = "requested";
                   else if (session.status === "confirmed") {
                     state = "confirmed";
-                    zoomLink = session.zoomLink;
-                  } else if (session.status === "rejected") state = "rejected";
+                    roomId = session.roomId;
+                  }
                 }
 
                 return (
@@ -235,11 +236,9 @@ export default function SessionPage() {
                           bg="#FFFBEB" color="#B45309" border="#FDE68A"
                         />
                       )}
-                      {state === "confirmed" && zoomLink && (
-                        <a
-                          href={zoomLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                      {state === "confirmed" && roomId && (
+                        <Link
+                          href={`/meeting/${roomId}`}
                           className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all"
                           style={{
                             background: "#7C3AED",
@@ -247,8 +246,8 @@ export default function SessionPage() {
                           }}
                         >
                           <Video size={14} />
-                          Join Zoom
-                        </a>
+                          Join Meeting
+                        </Link>
                       )}
                       {state === "rejected" && (
                         <StatusBadge
@@ -300,7 +299,7 @@ export default function SessionPage() {
                 const now = new Date();
                 const canJoin =
                   session.status === "confirmed" &&
-                  session.zoomLink &&
+                  session.roomId &&
                   now >= sessionTime;
                 const av = getAvatarColor(session.proposer?.name || "");
 
@@ -370,10 +369,8 @@ export default function SessionPage() {
                         </button>
                       )}
                       {canJoin && (
-                        <a
-                          href={session.zoomLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <Link
+                          href={`/meeting/${session.roomId}`}
                           className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white"
                           style={{
                             background: "#7C3AED",
@@ -381,8 +378,8 @@ export default function SessionPage() {
                           }}
                         >
                           <Video size={14} />
-                          Join Zoom
-                        </a>
+                          Join Meeting
+                        </Link>
                       )}
                     </div>
                   </li>
