@@ -8,20 +8,16 @@ const router = express.Router();
 
 const JITSI_BASE = "https://meet.jit.si";
 
-// Helper: attach meetingLink only if session time has arrived (with 5-min early window)
+// Helper: attach meeting link (NO TIME RESTRICTION = instant join)
 function withMeetingLink(session) {
   const obj = session.toObject();
-  if (obj.roomId) {
-    const now = new Date();
-    const sessionTime = new Date(obj.dateTime);
-    const fiveMinsBefore = new Date(sessionTime.getTime() - 5 * 60 * 1000);
 
-    obj.meetingLink = now >= fiveMinsBefore
-      ? `${JITSI_BASE}/${obj.roomId}`
-      : null; // not yet time
+  if (obj.roomId) {
+    obj.meetingLink = `${JITSI_BASE}/${obj.roomId}`;
   } else {
     obj.meetingLink = null;
   }
+
   return obj;
 }
 
@@ -29,54 +25,65 @@ function withMeetingLink(session) {
 router.post("/create", authMiddleware, async (req, res) => {
   try {
     const { exchangeId, dateTime } = req.body;
+
     const exchange = await Exchange.findById(exchangeId)
       .populate("requester recipient", "name email");
 
     if (!exchange) return res.status(404).json({ message: "Exchange not found" });
-    if (exchange.status !== "accepted") return res.status(400).json({ message: "Exchange not accepted yet" });
+    if (exchange.status !== "accepted") {
+      return res.status(400).json({ message: "Exchange not accepted yet" });
+    }
 
-    const recipientId = exchange.recipient._id.toString() === req.user
-      ? exchange.requester._id
-      : exchange.recipient._id;
+    const recipientId =
+      exchange.recipient._id.toString() === req.user
+        ? exchange.requester._id
+        : exchange.recipient._id;
 
     const session = new Session({
       request: exchange._id,
       proposer: req.user,
       recipient: recipientId,
       dateTime,
-      status: "pending"
+      status: "scheduled",
+      roomId: `skill-exchange-${nanoid(12)}`, // ✅ CREATED HERE
     });
 
     await session.save();
-    res.json(session);
+
+    res.json(withMeetingLink(session));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
-
 // Send session request (alternative route)
 router.post("/send", authMiddleware, async (req, res) => {
   try {
     const { requestId, dateTime } = req.body;
+
     const exchangeRequest = await Exchange.findById(requestId)
       .populate("requester recipient");
 
-    if (!exchangeRequest) return res.status(404).json({ message: "Request not found" });
+    if (!exchangeRequest) {
+      return res.status(404).json({ message: "Request not found" });
+    }
 
-    const recipientId = exchangeRequest.recipient._id.toString() === req.user
-      ? exchangeRequest.requester._id
-      : exchangeRequest.recipient._id;
+    const recipientId =
+      exchangeRequest.recipient._id.toString() === req.user
+        ? exchangeRequest.requester._id
+        : exchangeRequest.recipient._id;
 
     const session = new Session({
       request: requestId,
       proposer: req.user,
       recipient: recipientId,
       dateTime,
-      status: "pending",
+      status: "scheduled",
+      roomId: `skill-exchange-${nanoid(12)}`, // ✅ IMPORTANT FIX
     });
 
     await session.save();
-    res.json(session);
+
+    res.json(withMeetingLink(session));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -101,23 +108,22 @@ router.get("/my", authMiddleware, async (req, res) => {
 // Accept / Reject session
 router.put("/:id", authMiddleware, async (req, res) => {
   try {
-    const { status } = req.body; // "confirmed" / "rejected"
+    const { status } = req.body;
+
     const session = await Session.findById(req.params.id);
 
-    if (!session) return res.status(404).json({ message: "Session not found" });
+    if (!session) {
+      return res.status(404).json({ message: "Session not found" });
+    }
+
     if (session.recipient.toString() !== req.user) {
       return res.status(403).json({ message: "Not authorized" });
     }
 
-    session.status = status;
-
-    if (status === "confirmed") {
-      session.roomId = `skill-exchange-${nanoid(12)}`;
-    }
+    session.status = status; // just tracking, NOT controlling meeting
 
     await session.save();
 
-    // ✅ FIX: return meetingLink in confirm response too
     res.json(withMeetingLink(session));
   } catch (err) {
     res.status(500).json({ error: err.message });

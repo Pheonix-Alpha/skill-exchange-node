@@ -270,10 +270,14 @@ export default function SessionPage() {
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <Clock size={11} style={{ color: "#94A3B8" }} />
                           <p className="text-xs" style={{ color: "#64748B" }}>
-                            {sessionTime.toLocaleString([], {
-                              month: "short", day: "numeric",
-                              hour: "2-digit", minute: "2-digit",
-                            })}
+                            {new Date(session.dateTime).toLocaleString("en-IN", {
+  timeZone: "Asia/Kolkata",
+  month: "short",
+  day: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: true,
+})}
                           </p>
                         </div>
                         <div className="mt-1">
