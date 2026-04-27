@@ -8,15 +8,27 @@ const router = express.Router();
 
 const JITSI_BASE = "https://meet.jit.si";
 
-// Helper: attach meeting link (NO TIME RESTRICTION = instant join)
+/**
+ * FIXED: Jitsi no-lobby config (prevents "Ask to join")
+ */
+function buildMeetingLink(roomId) {
+  return (
+    `${JITSI_BASE}/${roomId}` +
+    `#config.prejoinPageEnabled=false` +
+    `&config.startWithAudioMuted=false` +
+    `&config.enableWelcomePage=false`
+  );
+}
+
+/**
+ * Attach meeting link
+ */
 function withMeetingLink(session) {
   const obj = session.toObject();
 
-  if (obj.roomId) {
-    obj.meetingLink = `${JITSI_BASE}/${obj.roomId}`;
-  } else {
-    obj.meetingLink = null;
-  }
+  obj.meetingLink = obj.roomId
+    ? buildMeetingLink(obj.roomId)
+    : null;
 
   return obj;
 }
@@ -29,9 +41,8 @@ router.post("/create", authMiddleware, async (req, res) => {
     const exchange = await Exchange.findById(exchangeId)
       .populate("requester recipient", "name email");
 
-    if (!exchange) return res.status(404).json({ message: "Exchange not found" });
-    if (exchange.status !== "accepted") {
-      return res.status(400).json({ message: "Exchange not accepted yet" });
+    if (!exchange) {
+      return res.status(404).json({ message: "Exchange not found" });
     }
 
     const recipientId =
@@ -44,8 +55,12 @@ router.post("/create", authMiddleware, async (req, res) => {
       proposer: req.user,
       recipient: recipientId,
       dateTime,
+
+      // ✅ FIX: NO "scheduled"
       status: "confirmed",
-      roomId: `skill-exchange-${nanoid(12)}`, // ✅ CREATED HERE
+
+      // ✅ room always created here
+      roomId: `skill-exchange-${nanoid(12)}`
     });
 
     await session.save();
@@ -77,8 +92,11 @@ router.post("/send", authMiddleware, async (req, res) => {
       proposer: req.user,
       recipient: recipientId,
       dateTime,
-      status: "scheduled",
-      roomId: `skill-exchange-${nanoid(12)}`, // ✅ IMPORTANT FIX
+
+      // ✅ FIXED
+      status: "confirmed",
+
+      roomId: `skill-exchange-${nanoid(12)}`
     });
 
     await session.save();
@@ -120,8 +138,7 @@ router.put("/:id", authMiddleware, async (req, res) => {
       return res.status(403).json({ message: "Not authorized" });
     }
 
-    session.status = status; // just tracking, NOT controlling meeting
-
+    session.status = status;
     await session.save();
 
     res.json(withMeetingLink(session));
