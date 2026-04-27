@@ -5,16 +5,8 @@ import Link from "next/link";
 import Layout from "@/components/Layout";
 import axios from "@/lib/axios";
 import {
-  Calendar,
-  Video,
-  Clock,
-  CheckCircle,
-  XCircle,
-  Plus,
-  X,
-  Loader2,
-  Users,
-  Zap,
+  Calendar, Video, Clock, CheckCircle, XCircle,
+  Plus, X, Loader2, Users, Zap,
 } from "lucide-react";
 
 export default function SessionPage() {
@@ -119,49 +111,35 @@ export default function SessionPage() {
 
   return (
     <Layout>
-      <div
-        className="min-h-screen px-4 sm:px-6 py-10 max-w-3xl mx-auto"
-        style={{ background: "#F8FAFC" }}
-      >
-        {/* ── Header ── */}
+      <div className="min-h-screen px-4 sm:px-6 py-10 max-w-3xl mx-auto" style={{ background: "#F8FAFC" }}>
+        {/* Header */}
         <div className="mb-10">
-          <span
-            className="inline-block text-xs font-bold uppercase tracking-[0.18em] mb-3 px-3 py-1 rounded-full"
-            style={{ background: "#F5F3FF", color: "#7C3AED", border: "1px solid #DDD6FE" }}
-          >
+          <span className="inline-block text-xs font-bold uppercase tracking-[0.18em] mb-3 px-3 py-1 rounded-full"
+            style={{ background: "#F5F3FF", color: "#7C3AED", border: "1px solid #DDD6FE" }}>
             Sessions
           </span>
-          <h1 className="text-4xl font-black" style={{ color: "#0F172A" }}>
-            Skill Sessions
-          </h1>
+          <h1 className="text-4xl font-black" style={{ color: "#0F172A" }}>Skill Sessions</h1>
           <p className="text-sm mt-1" style={{ color: "#64748B" }}>
             Schedule and manage your skill exchange sessions.
           </p>
         </div>
 
-        {/* ── Section 1: Create Session ── */}
+        {/* Section 1: Schedule a Session (proposer view) */}
         <section className="mb-10">
           <div className="flex items-center gap-2 mb-5">
             <Calendar size={15} style={{ color: "#7C3AED" }} />
-            <h2
-              className="text-xs font-black uppercase tracking-widest"
-              style={{ color: "#64748B" }}
-            >
+            <h2 className="text-xs font-black uppercase tracking-widest" style={{ color: "#64748B" }}>
               Schedule a Session
             </h2>
             {!loading && acceptedExchanges.length > 0 && (
-              <span
-                className="px-2 py-0.5 rounded-full text-[10px] font-bold"
-                style={{ background: "#F5F3FF", border: "1px solid #DDD6FE", color: "#7C3AED" }}
-              >
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                style={{ background: "#F5F3FF", border: "1px solid #DDD6FE", color: "#7C3AED" }}>
                 {acceptedExchanges.length}
               </span>
             )}
           </div>
 
-          {loading ? (
-            <LoadingSkeleton />
-          ) : acceptedExchanges.length === 0 ? (
+          {loading ? <LoadingSkeleton /> : acceptedExchanges.length === 0 ? (
             <EmptyState
               icon={<Calendar size={22} style={{ color: "#CBD5E1" }} />}
               title="No accepted exchanges"
@@ -170,37 +148,24 @@ export default function SessionPage() {
           ) : (
             <ul className="flex flex-col gap-3">
               {acceptedExchanges.map((exchange) => {
-                const session = sessions.find(
-                  (s) => s.request._id === exchange._id
-                );
+                const session = sessions.find((s) => s.request._id === exchange._id);
                 const av = getAvatarColor(exchange.recipient?.name || "");
 
-                let state = "idle"; // idle | requested | confirmed | rejected
-                let roomId = null;
-
+                let state = "idle";
                 if (session) {
                   if (session.status === "pending") state = "requested";
-                  else if (session.status === "confirmed") {
-                    state = "confirmed";
-                    roomId = session.roomId;
-                  }
+                  else if (session.status === "confirmed") state = "confirmed";
+                  else if (session.status === "rejected") state = "rejected";
                 }
 
                 return (
-                  <li
-                    key={exchange._id}
+                  <li key={exchange._id}
                     className="rounded-2xl p-5 flex items-center justify-between gap-4 transition-shadow hover:shadow-md"
-                    style={{
-                      background: "#FFFFFF",
-                      border: "1px solid #E2E8F0",
-                      boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-                    }}
+                    style={{ background: "#FFFFFF", border: "1px solid #E2E8F0", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black flex-shrink-0"
-                        style={{ background: av.bg, color: av.text }}
-                      >
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black flex-shrink-0"
+                        style={{ background: av.bg, color: av.text }}>
                         {exchange.recipient?.name?.charAt(0).toUpperCase()}
                       </div>
                       <div className="min-w-0">
@@ -217,14 +182,9 @@ export default function SessionPage() {
 
                     <div className="flex-shrink-0">
                       {state === "idle" && (
-                        <button
-                          onClick={() => handleSetSession(exchange)}
+                        <button onClick={() => handleSetSession(exchange)}
                           className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all"
-                          style={{
-                            background: "#7C3AED",
-                            boxShadow: "0 2px 8px rgba(124,58,237,0.25)",
-                          }}
-                        >
+                          style={{ background: "#7C3AED", boxShadow: "0 2px 8px rgba(124,58,237,0.25)" }}>
                           <Plus size={14} />
                           Schedule
                         </button>
@@ -236,25 +196,25 @@ export default function SessionPage() {
                           bg="#FFFBEB" color="#B45309" border="#FDE68A"
                         />
                       )}
-                      {state === "confirmed" && roomId && (
-                        <Link
-                          href={`/meeting/${roomId}`}
+                      {/* ✅ FIX: use meetingLink from backend (null until session time) */}
+                      {state === "confirmed" && session.meetingLink && (
+                        <Link href={session.meetingLink}
                           className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all"
-                          style={{
-                            background: "#7C3AED",
-                            boxShadow: "0 2px 8px rgba(124,58,237,0.25)",
-                          }}
-                        >
+                          style={{ background: "#7C3AED", boxShadow: "0 2px 8px rgba(124,58,237,0.25)" }}>
                           <Video size={14} />
                           Join Meeting
                         </Link>
                       )}
-                      {state === "rejected" && (
+                      {/* ✅ FIX: show waiting state when confirmed but not time yet */}
+                      {state === "confirmed" && !session.meetingLink && (
                         <StatusBadge
-                          icon={<XCircle size={12} />}
-                          label="Rejected"
-                          bg="#FFF1F2" color="#BE123C" border="#FECDD3"
+                          icon={<Clock size={12} />}
+                          label="Link available at session time"
+                          bg="#F0FDF4" color="#166534" border="#BBF7D0"
                         />
+                      )}
+                      {state === "rejected" && (
+                        <StatusBadge icon={<XCircle size={12} />} label="Rejected" bg="#FFF1F2" color="#BE123C" border="#FECDD3" />
                       )}
                     </div>
                   </li>
@@ -264,29 +224,22 @@ export default function SessionPage() {
           )}
         </section>
 
-        {/* ── Section 2: Received Requests ── */}
+        {/* Section 2: Received Requests (recipient view) */}
         <section className="mb-20">
           <div className="flex items-center gap-2 mb-5">
             <Users size={15} style={{ color: "#2563EB" }} />
-            <h2
-              className="text-xs font-black uppercase tracking-widest"
-              style={{ color: "#64748B" }}
-            >
+            <h2 className="text-xs font-black uppercase tracking-widest" style={{ color: "#64748B" }}>
               Received Requests
             </h2>
             {!loading && receivedSessions.length > 0 && (
-              <span
-                className="px-2 py-0.5 rounded-full text-[10px] font-bold"
-                style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB" }}
-              >
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB" }}>
                 {receivedSessions.length}
               </span>
             )}
           </div>
 
-          {loading ? (
-            <LoadingSkeleton />
-          ) : receivedSessions.length === 0 ? (
+          {loading ? <LoadingSkeleton /> : receivedSessions.length === 0 ? (
             <EmptyState
               icon={<Users size={22} style={{ color: "#CBD5E1" }} />}
               title="No incoming requests"
@@ -296,28 +249,18 @@ export default function SessionPage() {
             <ul className="flex flex-col gap-3">
               {receivedSessions.map((session) => {
                 const sessionTime = new Date(session.dateTime);
-                const now = new Date();
-                const canJoin =
-                  session.status === "confirmed" &&
-                  session.roomId &&
-                  now >= sessionTime;
+                // ✅ FIX: backend gates the link — just check if meetingLink exists
+                const canJoin = !!session.meetingLink;
                 const av = getAvatarColor(session.proposer?.name || "");
 
                 return (
-                  <li
-                    key={session._id}
+                  <li key={session._id}
                     className="rounded-2xl p-5 flex items-center justify-between gap-4 transition-shadow hover:shadow-md"
-                    style={{
-                      background: "#FFFFFF",
-                      border: "1px solid #E2E8F0",
-                      boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-                    }}
+                    style={{ background: "#FFFFFF", border: "1px solid #E2E8F0", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black flex-shrink-0"
-                        style={{ background: av.bg, color: av.text }}
-                      >
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black flex-shrink-0"
+                        style={{ background: av.bg, color: av.text }}>
                         {session.proposer?.name?.charAt(0).toUpperCase()}
                       </div>
                       <div className="min-w-0">
@@ -328,10 +271,8 @@ export default function SessionPage() {
                           <Clock size={11} style={{ color: "#94A3B8" }} />
                           <p className="text-xs" style={{ color: "#64748B" }}>
                             {sessionTime.toLocaleString([], {
-                              month: "short",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
+                              month: "short", day: "numeric",
+                              hour: "2-digit", minute: "2-digit",
                             })}
                           </p>
                         </div>
@@ -351,32 +292,21 @@ export default function SessionPage() {
 
                     <div className="flex gap-2 flex-shrink-0">
                       {session.status === "pending" && (
-                        <button
-                          onClick={() => handleAcceptSession(session._id)}
+                        <button onClick={() => handleAcceptSession(session._id)}
                           disabled={updatingId === session._id}
                           className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-60"
-                          style={{
-                            background: "#059669",
-                            boxShadow: "0 2px 8px rgba(5,150,105,0.2)",
-                          }}
-                        >
-                          {updatingId === session._id ? (
-                            <Loader2 size={14} className="animate-spin" />
-                          ) : (
-                            <CheckCircle size={14} />
-                          )}
+                          style={{ background: "#059669", boxShadow: "0 2px 8px rgba(5,150,105,0.2)" }}>
+                          {updatingId === session._id
+                            ? <Loader2 size={14} className="animate-spin" />
+                            : <CheckCircle size={14} />}
                           {updatingId === session._id ? "Confirming…" : "Accept"}
                         </button>
                       )}
+                      {/* ✅ FIX: use meetingLink from backend */}
                       {canJoin && (
-                        <Link
-                          href={`/meeting/${session.roomId}`}
+                        <Link href={session.meetingLink}
                           className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white"
-                          style={{
-                            background: "#7C3AED",
-                            boxShadow: "0 2px 8px rgba(124,58,237,0.25)",
-                          }}
-                        >
+                          style={{ background: "#7C3AED", boxShadow: "0 2px 8px rgba(124,58,237,0.25)" }}>
                           <Video size={14} />
                           Join Meeting
                         </Link>
@@ -390,79 +320,45 @@ export default function SessionPage() {
         </section>
       </div>
 
-      {/* ── Modal ── */}
+      {/* Modal */}
       {modalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center px-4"
-          style={{ background: "rgba(15,23,42,0.4)", backdropFilter: "blur(4px)" }}
-        >
-          <div
-            className="w-full max-w-sm rounded-2xl p-6"
-            style={{
-              background: "#FFFFFF",
-              border: "1px solid #E2E8F0",
-              boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
-            }}
-          >
-            {/* Modal header */}
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          style={{ background: "rgba(15,23,42,0.4)", backdropFilter: "blur(4px)" }}>
+          <div className="w-full max-w-sm rounded-2xl p-6"
+            style={{ background: "#FFFFFF", border: "1px solid #E2E8F0", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}>
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h2 className="font-black text-lg" style={{ color: "#0F172A" }}>
-                  Schedule Session
-                </h2>
+                <h2 className="font-black text-lg" style={{ color: "#0F172A" }}>Schedule Session</h2>
                 {selectedExchange && (
                   <p className="text-xs mt-0.5" style={{ color: "#94A3B8" }}>
                     with {selectedExchange.recipient?.name}
                   </p>
                 )}
               </div>
-              <button
-                onClick={() => setModalOpen(false)}
-                className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors hover:bg-slate-100"
-              >
+              <button onClick={() => setModalOpen(false)}
+                className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors hover:bg-slate-100">
                 <X size={16} style={{ color: "#64748B" }} />
               </button>
             </div>
 
-            {/* Date input */}
             <label className="block mb-1.5 text-xs font-bold uppercase tracking-widest" style={{ color: "#94A3B8" }}>
               Date & Time
             </label>
-            <input
-              type="datetime-local"
-              value={dateTime}
-              onChange={(e) => setDateTime(e.target.value)}
+            <input type="datetime-local" value={dateTime} onChange={(e) => setDateTime(e.target.value)}
               className="w-full px-4 py-3 rounded-xl text-sm outline-none mb-5"
-              style={{
-                background: "#F8FAFC",
-                border: "1.5px solid #E2E8F0",
-                color: "#0F172A",
-              }}
+              style={{ background: "#F8FAFC", border: "1.5px solid #E2E8F0", color: "#0F172A" }}
             />
 
-            {/* Actions */}
             <div className="flex gap-2">
-              <button
-                onClick={() => setModalOpen(false)}
+              <button onClick={() => setModalOpen(false)}
                 className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors"
-                style={{ background: "#F1F5F9", color: "#64748B", border: "1px solid #E2E8F0" }}
-              >
+                style={{ background: "#F1F5F9", color: "#64748B", border: "1px solid #E2E8F0" }}>
                 Cancel
               </button>
-              <button
-                onClick={handleSubmitSession}
-                disabled={sending}
+              <button onClick={handleSubmitSession} disabled={sending}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-60"
-                style={{
-                  background: "#7C3AED",
-                  boxShadow: "0 2px 8px rgba(124,58,237,0.25)",
-                }}
-              >
-                {sending ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : (
-                  <Calendar size={14} />
-                )}
+                style={{ background: "#7C3AED", boxShadow: "0 2px 8px rgba(124,58,237,0.25)" }}>
+                {sending ? <Loader2 size={14} className="animate-spin" /> : <Calendar size={14} />}
                 {sending ? "Sending…" : "Send Request"}
               </button>
             </div>
@@ -473,28 +369,20 @@ export default function SessionPage() {
   );
 }
 
-/* ── Helpers ── */
-
 function SkillTag({ icon, label, color, bg, border }) {
   return (
-    <span
-      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold"
-      style={{ background: bg, color, border: `1px solid ${border}` }}
-    >
-      {icon}
-      {label}
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold"
+      style={{ background: bg, color, border: `1px solid ${border}` }}>
+      {icon}{label}
     </span>
   );
 }
 
 function StatusBadge({ icon, label, bg, color, border }) {
   return (
-    <span
-      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold"
-      style={{ background: bg, color, border: `1px solid ${border}` }}
-    >
-      {icon}
-      {label}
+    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold"
+      style={{ background: bg, color, border: `1px solid ${border}` }}>
+      {icon}{label}
     </span>
   );
 }
@@ -503,11 +391,8 @@ function LoadingSkeleton() {
   return (
     <div className="flex flex-col gap-3">
       {Array(2).fill(0).map((_, i) => (
-        <div
-          key={i}
-          className="rounded-2xl p-5 animate-pulse"
-          style={{ background: "#FFFFFF", border: "1px solid #E2E8F0" }}
-        >
+        <div key={i} className="rounded-2xl p-5 animate-pulse"
+          style={{ background: "#FFFFFF", border: "1px solid #E2E8F0" }}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-slate-100" />
             <div className="space-y-2">
@@ -523,14 +408,10 @@ function LoadingSkeleton() {
 
 function EmptyState({ icon, title, desc }) {
   return (
-    <div
-      className="flex flex-col items-center justify-center py-14 text-center rounded-2xl"
-      style={{ background: "#FFFFFF", border: "1.5px dashed #E2E8F0" }}
-    >
-      <div
-        className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
-        style={{ background: "#F8FAFC", border: "1px solid #E2E8F0" }}
-      >
+    <div className="flex flex-col items-center justify-center py-14 text-center rounded-2xl"
+      style={{ background: "#FFFFFF", border: "1.5px dashed #E2E8F0" }}>
+      <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+        style={{ background: "#F8FAFC", border: "1px solid #E2E8F0" }}>
         {icon}
       </div>
       <h3 className="font-bold text-sm" style={{ color: "#0F172A" }}>{title}</h3>
