@@ -6,7 +6,7 @@ export default function MeetingPage() {
   const { roomId } = useParams();
   const router = useRouter();
 
-  const meetingUrl = `https://jitsi.riot.im/${roomId}#config.prejoinPageEnabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false`;
+  const meetingUrl = `https://meet.element.io/${roomId}#config.prejoinPageEnabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false`;
 
   return (
     <div className="fixed inset-0 bg-slate-900 flex flex-col">
