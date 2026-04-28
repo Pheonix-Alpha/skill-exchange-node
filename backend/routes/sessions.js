@@ -11,15 +11,11 @@ const JITSI_BASE = "https://meet.jit.si";
 /**
  * FIXED: Jitsi no-lobby config (prevents "Ask to join")
  */
-function buildMeetingLink(roomId) {
-  return (
-    `${JITSI_BASE}/${roomId}` +
-    `#config.prejoinPageEnabled=false` +
-    `&config.startWithAudioMuted=false` +
-    `&config.enableWelcomePage=false`
-  );
-}
+const FRONTEND_BASE = process.env.FRONTEND_URL || "http://localhost:3000";
 
+function buildMeetingLink(roomId) {
+  return `${FRONTEND_BASE}/meeting/${roomId}`;
+}
 /**
  * Attach meeting link
  */
@@ -49,19 +45,14 @@ router.post("/create", authMiddleware, async (req, res) => {
       exchange.recipient._id.toString() === req.user
         ? exchange.requester._id
         : exchange.recipient._id;
-
-    const session = new Session({
-      request: exchange._id,
-      proposer: req.user,
-      recipient: recipientId,
-      dateTime,
-
-      // ✅ FIX: NO "scheduled"
-      status: "confirmed",
-
-      // ✅ room always created here
-      roomId: `skill-exchange-${nanoid(12)}`
-    });
+const session = new Session({
+  request: exchange._id,
+  proposer: req.user,
+  recipient: recipientId,
+  dateTime,
+  status: "confirmed",
+  roomId: `skill-exchange-${nanoid(12)}`
+});
 
     await session.save();
 
